@@ -38,3 +38,5 @@ pnpm db:studio    # Drizzle Studio
 ## Conventions
 
 See [`CLAUDE.md`](CLAUDE.md) for the full development context, current build phase, and security baseline notes — load it at the start of any AI-assisted session on this repo.
+
+See [`changelog.md`](changelog.md) for a history of notable changes.

@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+# scaffold/security-baseline/pre-push
+#
+# Fast, secrets-only check that runs before `git push` completes. Deliberately
+# does NOT run the full NS-002 audit here — that belongs in /sec --full before
+# an actual deploy, not on every push. This only checks the CURRENT working
+# tree (not full git history) for things that look like live secrets.
+#
+# Install: copy this file to .husky/pre-push in the project, then
+# chmod +x .husky/pre-push
+
+# Block if any env file somehow ended up staged for push despite .gitignore
+if git diff --cached --name-only --diff-filter=A | grep -qE '(^|/)\.env'; then
+  echo "BLOCKED: an .env file is staged. Remove it from the commit before pushing."
+  exit 1
+fi
+
+# Prefer gitleaks if it's installed — it's a real secrets scanner, not a
+# handful of regexes, and it's free/open-source.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks detect --no-git --source . --redact
+  if [ $? -ne 0 ]; then
+    echo "BLOCKED: gitleaks found something that looks like a secret. Review above, fix, and try again."
+    exit 1
+  fi
+else
+  echo "gitleaks not found — falling back to a basic pattern scan."
+  echo "Install gitleaks for real coverage: brew install gitleaks"
+
+  # ADAPT: this fallback is intentionally crude. It catches the obvious
+  # cases (AWS keys, private key blocks, Stripe-style live keys, connection
+  # strings with an embedded password) but it is not a substitute for
+  # gitleaks. Treat any hit as a reason to look closer, not a guarantee
+  # of safety if it comes back clean.
+  PATTERN='AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|sk_live_[0-9a-zA-Z]{10,}|://[^:]+:[^@]+@'
+
+  if git diff --cached | grep -EI "$PATTERN" > /dev/null; then
+    echo "BLOCKED: the staged diff matches a pattern that looks like a secret."
+    echo "Review the diff before pushing. If it's a false positive, install gitleaks for a more accurate check."
+    exit 1
+  fi
+fi
+
+exit 0

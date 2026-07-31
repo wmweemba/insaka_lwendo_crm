@@ -1,0 +1,17 @@
+# Supply-chain hardening, adapted from wsm-second-brain/scaffold/security-baseline/pnpm-workspace.yaml
+# pnpm 10.x (<11) is in use here: onlyBuiltDependencies (list) is the correct key,
+# not allowBuilds (that's pnpm 11+ only). Re-check `pnpm --version` before upgrading pnpm.
+
+# Newly-published package versions won't resolve until they're at least this many
+# minutes old. Defends against supply-chain attacks where a compromised version is
+# published and then yanked within hours. 1440 = 1 day.
+minimumReleaseAge: 1440
+
+# Default-deny on install/build scripts except for packages listed here that are
+# known to need them (native binaries / platform-specific fetches).
+onlyBuiltDependencies:
+  - esbuild
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

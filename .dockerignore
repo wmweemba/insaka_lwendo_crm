@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+docs
+
+# env files — see scaffold/security-baseline/env-exclusions.fragment in wsm-second-brain
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+*.env

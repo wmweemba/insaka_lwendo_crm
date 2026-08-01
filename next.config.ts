@@ -6,6 +6,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
+  // Route-level fade+rise transitions (ui_spec.md §5.1) use the browser's
+  // native View Transitions API via this flag, not a client animation
+  // library — see ui_spec.md §5 for why that split exists.
+  experimental: {
+    viewTransition: true,
+  },
+
   async headers() {
     return [
       {

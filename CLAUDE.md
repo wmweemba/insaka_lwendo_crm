@@ -29,6 +29,8 @@ The planning docs that drove this build are copied into this repo at `docs/plann
 - `03-ui-and-dashboard.md` — the four screens, explicitly what NOT to build in v1
 - `04-build-phases.md` — P0–P4 phase breakdown and acceptance criteria
 
+`ui_spec.md` at repo root is the single source of truth for color, type, layout, motion, and component style — load it alongside this file for any UI-building session. Don't invent visual patterns beyond what's there.
+
 At the start of a new session, or when a task needs context beyond this file, also read from `wsm-second-brain`:
 - `WILLIAM.md` — priorities, constraints, time budget
 - `systems/NS-007-*.md` — Drizzle migration journal gotcha (directly applicable — same stack as BazaBooks)
@@ -68,7 +70,9 @@ Do not invent features beyond docs `00`–`03` during implementation — if a wa
 | Framework | Next.js 16 (App Router), TypeScript, `src/` dir |
 | DB | Postgres via Drizzle ORM (`drizzle-orm`, `drizzle-kit`) — new database on the existing Coolify Postgres instance |
 | Auth | Better Auth, single admin account, signups disabled after first user |
-| Styling | Tailwind CSS v4 |
+| Styling | Tailwind CSS v4 (`@theme` tokens per `ui_spec.md` §1/§2/§4) |
+| Motion | `motion` (formerly Framer Motion — package renamed, same authors/API family) for in-screen interaction: kanban drag physics, scroll-reveal stagger. **Not** used for route-level transitions — see below |
+| Route transitions | Next's native View Transitions (`experimental.viewTransition` in `next.config.ts`) — chosen over a client animation library because App Router's server-rendered routing fights `AnimatePresence`-style exit animations; see `ui_spec.md` §5 |
 | Forms | react-hook-form + zod |
 | Deploy | Coolify on Hetzner, own subdomain, HTTPS |
 | Package manager | pnpm (supply-chain hardening via `pnpm-workspace.yaml` — see below) |

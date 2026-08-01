@@ -33,6 +33,15 @@ until the app reaches its first production deploy with real client data.
   (`schema.ts`, intentionally empty pending P0-S2).
 - `CLAUDE.md` and `README.md` with project context, current build phase,
   and stack/security notes.
+- `ui_spec.md` — full design spec ("Firelight glass" / insaka design thesis):
+  color system (dark/light), typography, layout & nav, glass surface/elevation
+  system, motion system, iconography, per-screen component patterns, voice,
+  accessibility floor, and implementation notes.
+- `motion` dependency (the current package for what was Framer Motion) for
+  in-screen interaction (kanban drag physics, scroll-reveal stagger).
+- `experimental.viewTransition` enabled in `next.config.ts` for route-level
+  fade/rise transitions via the browser's native View Transitions API,
+  rather than a client animation library — see `ui_spec.md` §5 for why.
 
 ### Notes
 

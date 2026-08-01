@@ -31,6 +31,18 @@ until the app reaches its first production deploy with real client data.
   data model and doc 03 UI spec.
 - `src/db/` — Drizzle client (`index.ts`) and schema entry point
   (`schema.ts`, intentionally empty pending P0-S2).
+- Full Drizzle schema (`src/db/schema.ts`) for the doc 01 data model: `products`,
+  `contacts`, `engagements`, `interactions`, `next_actions`, `usage_rollups`,
+  `ingest_log` — snake_case columns per `NS-011`, the locked stage-machine enum
+  (`LEAD` → … → `PAYING`/`DORMANT`/`LOST`), the `(contact_id, product_id)` and
+  `(product_id, app_user_id, period_date)` unique constraints, and all 5 indexes
+  from doc 01's "Indexes that matter."
+- `src/db/seed.ts` + `pnpm db:seed` — seeds the 5 reference products
+  (`bazabooks`, `chama360`, `catering-scheduler`, `nexus-web`, `other`).
+- Generated first migration (`drizzle/0000_flimsy_ultimates.sql`) via
+  `drizzle-kit generate`, reviewed against doc 01. Not yet applied to any
+  database — gated on the Coolify Postgres tunnel being confirmed working
+  first, per `NS-007` migration discipline.
 - `CLAUDE.md` and `README.md` with project context, current build phase,
   and stack/security notes.
 - `ui_spec.md` — full design spec ("Firelight glass" / insaka design thesis):

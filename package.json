@@ -10,7 +10,8 @@
     "prepare": "husky",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "node --experimental-strip-types src/db/seed.ts"
   },
   "dependencies": {
     "better-auth": "^1.6.25",

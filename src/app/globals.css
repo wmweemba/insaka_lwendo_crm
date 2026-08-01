@@ -80,3 +80,32 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+/*
+ * "Firelight glass" — ui_spec.md §4.1. The radial gradient origin is always
+ * bottom-center (light from below, like a hearth) — don't vary it per card.
+ */
+.card-glass {
+  background: var(--color-surface);
+  background-image: radial-gradient(
+    ellipse at 50% 120%,
+    var(--color-surface-glass),
+    transparent 70%
+  );
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    border-color 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
+  /* §10 — scope repaint cost per card; the pipeline board is the "dozens of
+     cards" case that section calls out as needing this mitigation first. */
+  contain: layout paint;
+}
+
+.card-glass:hover {
+  border-color: var(--color-border-glow);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}

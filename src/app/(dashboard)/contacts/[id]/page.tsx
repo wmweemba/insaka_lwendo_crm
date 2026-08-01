@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { getContactById } from "@/db/queries/contacts";
+import { getContactById, listContactsForReferralPicker } from "@/db/queries/contacts";
 import { listActiveProducts } from "@/db/queries/engagements";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +7,7 @@ import { AddEngagementForm } from "./AddEngagementForm";
 import { DeleteContactButton } from "./DeleteContactButton";
 import { EngagementPanel } from "./EngagementPanel";
 import { LogInteractionForm } from "./LogInteractionForm";
+import { MergeContactForm } from "./MergeContactForm";
 import { Timeline } from "./Timeline";
 
 export default async function ContactDetailPage({
@@ -15,9 +16,10 @@ export default async function ContactDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [contact, activeProducts] = await Promise.all([
+  const [contact, activeProducts, mergeOptions] = await Promise.all([
     getContactById(id),
     listActiveProducts(),
+    listContactsForReferralPicker(id),
   ]);
 
   if (!contact) notFound();
@@ -41,6 +43,8 @@ export default async function ContactDetailPage({
           <DeleteContactButton contactId={contact.id} />
         </div>
       </div>
+
+      <MergeContactForm contactId={contact.id} contactName={contact.name} options={mergeOptions} />
 
       <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-body">
         <div>

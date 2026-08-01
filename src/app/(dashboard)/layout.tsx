@@ -3,11 +3,10 @@ import Link from "next/link";
 import { QuickAddShortcut } from "./QuickAddShortcut";
 
 // Nav shell per ui_spec.md §3.2 (desktop sidebar) / §3.3 (mobile bottom tab bar).
-// Contacts and Quick-add are wired up — This Week/Pipeline stay muted until
-// those screens are built.
+// Only This Week (a separate, later doc 03 screen) stays muted now.
 const NAV_ITEMS = [
   { label: "This Week", href: "/", icon: CalendarDays, live: false },
-  { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, live: false },
+  { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, live: true },
   { label: "Contacts", href: "/contacts", icon: Users, live: true },
   { label: "Quick-add", href: "/leads/new", icon: Plus, live: true },
 ] as const;

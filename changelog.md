@@ -92,6 +92,31 @@ until the app reaches its first production deploy with real client data.
 - `getContactById` (`src/db/queries/contacts.ts`) extended to load
   `interactions` and open `nextActions` per engagement, feeding the timeline
   and next-actions list without a new query file.
+- Pipeline board (`/pipeline`, doc 03 screen 2): 9 kanban columns in the
+  locked stage order, `ui_spec.md` §7.2 temperature palette on column top
+  borders + card stage dot, glass cards (`PipelineCard.tsx`) with tier badge,
+  days-in-stage, and next-action date (danger color if overdue). Drag-to-
+  change-stage via `motion/react`, with the doc 01 required-reason modal
+  blocking drops onto `LOST` (`LostReasonModal.tsx`) — confirms write a
+  `system` interaction row, same rule as the engagement panel and quick-add.
+  The "reached SIGNED_UP+" warm-pulse animation from §5.3 on successful moves.
+- Product tabs (`ProductTabs.tsx`) + an "All" tab that swaps the board for a
+  flat table (`AllTable.tsx`, doc 03: name/product/stage/tier/last
+  interaction/next action) with client-side CSV export (`ExportCsvButton.tsx`).
+- `.card-glass` (`ui_spec.md` §4.1 recipe) added to `globals.css` — the first
+  screen that needed the actual glass CSS, not just the underlying tokens.
+  Includes `contain: layout paint` per §10's guidance for the "dozens of
+  cards on screen" case the pipeline board is.
+- Merge-duplicates (doc 03 screen 3): "Merge into another contact" on the
+  contact detail page (`MergeContactForm.tsx` + `contacts/merge-actions.ts`).
+  Transactional — re-points engagements onto the target contact, or (when
+  both contacts already have an engagement for the same product) moves the
+  source's interactions/next_actions onto the target's existing engagement
+  instead of creating a duplicate; unions `phone`/`phone_alt`; re-points any
+  contacts that had the source as `referred_by`; deletes the source.
+- `src/lib/now.ts` — a named `currentTimestamp()` wrapper around `Date.now()`,
+  used to pass "now" down from server components as a plain prop rather than
+  reading the wall clock inside component render bodies (see Fixed).
 
 ### Fixed
 
@@ -103,6 +128,19 @@ until the app reaches its first production deploy with real client data.
   actions was checking `err.code` directly, but drizzle-orm wraps driver
   errors in `DrizzleQueryError` with the real Postgres error on `.cause` —
   fixed to check both levels.
+- Kanban drag-and-drop was silently resolving every drop to the card's own
+  source column: `elementFromPoint` at drop time hits the dragged card itself
+  (still positioned under the pointer), whose nearest `[data-stage-column]`
+  ancestor is the source, not whatever's underneath it. Fixed by disabling
+  `pointer-events` on the dragged card for that one synchronous lookup.
+- Two React Compiler purity violations (`Date.now()`/`new Date()` called
+  directly in component render bodies, in the pipeline board/cards) — fixed
+  by computing the timestamp once in the server component and threading it
+  down as a plain `now` prop instead.
+- `PipelineBoard` was syncing local state from props via a
+  `useEffect(() => setEngagements(initial), [initial])` — a documented React
+  anti-pattern. Replaced with a `key={product}` on the component so switching
+  product tabs remounts it with fresh state instead.
 
 ### Notes
 
@@ -113,8 +151,16 @@ until the app reaches its first production deploy with real client data.
 - Auth (Better Auth single-admin) is still not wired up — Contacts CRUD and
   quick-add are unauthenticated for now; tracked in `CLAUDE.md`'s "still to
   do" list.
-- P0-S2 (doc 04) is now complete: schema/seed, contacts/engagements CRUD,
-  quick-add with dedup, and the timeline/composer/next-action prompt are all
-  built. P0-S3 (pipeline board, "All" table view, merge-duplicates) is next.
+- P0 (doc 04) is now feature-complete: S1 schema/seed, S2 contacts/engagements
+  CRUD + quick-add with dedup + timeline/composer/next-actions, and S3
+  pipeline board + "All" table + merge-duplicates are all built. Still
+  outstanding before P0's own acceptance bar is fully met: the Coolify smoke
+  deploy (S1's remaining item) and auth. P1+ (legacy import, signup webhooks,
+  ZeroClaw, usage rollups) haven't been started.
+- Kanban drag currently requires all 9 stage columns to fit in the viewport
+  (or be scrolled into view) for a drop to register correctly — there's no
+  auto-scroll-on-drag-near-edge yet. Fine on a wide desktop window; a real
+  gap on laptop-width screens or anything narrower. Flagged as a follow-up,
+  not fixed in this pass.
 
 [Unreleased]: https://github.com/wmweemba/insaka_lwendo_crm/compare/main...HEAD

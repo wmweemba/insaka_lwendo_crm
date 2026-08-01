@@ -1,0 +1,18 @@
+title = "insaka_lwendo_crm gitleaks config"
+
+# Use gitleaks' built-in ruleset; we only need to extend the path allowlist.
+[extend]
+useDefault = true
+
+[allowlist]
+# The pre-push hook runs `gitleaks detect --no-git`, which walks the plain
+# filesystem tree (not git's index) and therefore ignores .gitignore. Without
+# this, it recurses into node_modules — including pnpm's heavily-symlinked
+# .pnpm store — which can hang indefinitely. None of these paths are ever
+# committed, so excluding them from the scan is safe.
+paths = [
+  '''node_modules''',
+  '''\.next''',
+  '''\.git''',
+  '''pnpm-lock\.yaml''',
+]

@@ -257,6 +257,25 @@ until the app reaches its first production deploy with real client data.
   `useEffect(() => setEngagements(initial), [initial])` — a documented React
   anti-pattern. Replaced with a `key={product}` on the component so switching
   product tabs remounts it with fresh state instead.
+- Sidebar/mobile-tab nav had no active-route detection — every "live" item
+  (Pipeline, Contacts, Quick-add) always rendered in the active/accent-glow
+  style regardless of the current page, contrary to `ui_spec.md` §3.2's
+  "active item gets a left-edge vertical accent bar." Extracted nav rendering
+  into a client component (`NavLinks.tsx`, uses `usePathname()`) so only the
+  current route is highlighted; inactive live items now render muted with a
+  hover state, matching the "soon" items' visual weight class but without the
+  disabled look.
+- `.env.example` listed stale placeholder secret names
+  (`BAZABOOKS_WEBHOOK_SECRET`, `CHAMA360_WEBHOOK_SECRET`) that don't match the
+  `INGEST_SECRET_<APP>` convention `src/lib/ingestAuth.ts` actually reads —
+  updated to match.
+- Re-verified `/api/ingest/signup` end-to-end against local dev Postgres with
+  a real HMAC-signed request (valid signup, replay, and bad-signature cases)
+  after noticing `ingest_log` was empty despite an earlier claimed
+  verification — all three cases behaved correctly and logged as expected;
+  the empty table was from a subsequent local DB reset (legacy-import
+  requires an empty `contacts` table to run), not a broken webhook. Test rows
+  cleaned up afterward.
 
 ### Notes
 

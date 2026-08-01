@@ -55,9 +55,10 @@ Per `docs/planning/04-build-phases.md`, standing rules for every phase:
 
 Order of operations (P0):
 1. ✅ S1: repo scaffold — Next.js App Router + Drizzle + Better Auth deps installed, security baseline applied, planning docs copied in.
-2. ⬜ S1 (remaining): Coolify deploy on subdomain with HTTPS, empty-schema smoke deploy.
-3. ⬜ S2: full schema from `docs/planning/01-data-model.md`, seed products, contacts/engagements CRUD, quick-add lead flow with dedup warning, contact detail with timeline.
-4. ⬜ S3: pipeline board (drag = stage change, LOST-reason prompt), "All" table view, merge-duplicates action.
+2. ✅ S1: Better Auth single-admin wired up (email/password, sign-ups closed after the first account, `/sign-in`, `src/proxy.ts` + dashboard-layout session gate). Verified in-browser.
+3. ⬜ S1 (remaining): Coolify deploy on subdomain with HTTPS, empty-schema smoke deploy. Needs real Coolify access — not doable from a coding session alone.
+4. ✅ S2: full schema from `docs/planning/01-data-model.md`, seed products, contacts/engagements CRUD, quick-add lead flow with dedup warning, contact detail with timeline.
+5. ✅ S3: pipeline board (drag = stage change, LOST-reason prompt), "All" table view, merge-duplicates action.
 
 Do not invent features beyond docs `00`–`03` during implementation — if a want emerges mid-build (tags, search, email, charts), write it down as a v2 candidate in `docs/planning/04-build-phases.md`'s margin and keep moving.
 

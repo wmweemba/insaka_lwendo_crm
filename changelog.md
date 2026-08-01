@@ -117,6 +117,21 @@ until the app reaches its first production deploy with real client data.
 - `src/lib/now.ts` — a named `currentTimestamp()` wrapper around `Date.now()`,
   used to pass "now" down from server components as a plain prop rather than
   reading the wall clock inside component render bodies (see Fixed).
+- Better Auth single-admin wiring (closes out P0-S1's last item): email/password
+  auth (`src/lib/auth.ts`, `src/lib/auth-client.ts`), the
+  `/api/auth/[...all]` route handler, and Better Auth's 4 tables
+  (`src/db/auth-schema.ts` — camelCase columns per NS-011's naming exception,
+  included in `drizzle.config.ts`'s schema glob and migrated normally;
+  `drizzle-kit migrate` had no NS-007-style hang against local Postgres.app).
+  A `databaseHooks.user.create.before` hook closes sign-ups after the first
+  account exists — enforced at the API layer (verified: a second
+  `/api/auth/sign-up/email` call 403s), not just hidden in the UI. `/sign-in`
+  reads the user count server-side to switch between "create admin account"
+  (first run) and "sign in" (every run after). `src/proxy.ts` (Next 16
+  renamed `middleware.ts` → `proxy.ts`) does an optimistic cookie-only redirect
+  per Better Auth's guidance for Proxy; the `(dashboard)` layout does the real
+  `auth.api.getSession()` check server-side as the actual gate. Sign-out lives
+  in the sidebar (`SignOutButton.tsx`).
 
 ### Fixed
 
@@ -148,15 +163,23 @@ until the app reaches its first production deploy with real client data.
   working again and the Agent LLM Stack plan lands — see `CLAUDE.md`.
 - No deploy yet. First entry under a real version number lands at the
   P0-S1 Coolify smoke deploy.
-- Auth (Better Auth single-admin) is still not wired up — Contacts CRUD and
-  quick-add are unauthenticated for now; tracked in `CLAUDE.md`'s "still to
-  do" list.
-- P0 (doc 04) is now feature-complete: S1 schema/seed, S2 contacts/engagements
-  CRUD + quick-add with dedup + timeline/composer/next-actions, and S3
-  pipeline board + "All" table + merge-duplicates are all built. Still
-  outstanding before P0's own acceptance bar is fully met: the Coolify smoke
-  deploy (S1's remaining item) and auth. P1+ (legacy import, signup webhooks,
-  ZeroClaw, usage rollups) haven't been started.
+- Auth is now wired up (Better Auth single-admin, email/password, sign-ups
+  closed after the first account) — verified end-to-end in a real browser:
+  first-run sign-up creates the admin and lands on `/contacts`, sign-out
+  returns to `/sign-in` which then shows "Sign in" instead of "Create admin
+  account", sign-in with those credentials works, unauthenticated requests to
+  `/` 307-redirect to `/sign-in`, and a second `/api/auth/sign-up/email` call
+  403s. `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` added to `.env.local`
+  (gitignored) for local dev — both need real values in Coolify's env before
+  the smoke deploy, and `BETTER_AUTH_URL` must be the real subdomain, not
+  `localhost:3000`.
+- P0 (doc 04) is now feature-complete: S1 schema/seed + auth, S2
+  contacts/engagements CRUD + quick-add with dedup + timeline/composer/
+  next-actions, and S3 pipeline board + "All" table + merge-duplicates are
+  all built. Only outstanding item before P0's own acceptance bar is fully
+  met: the Coolify smoke deploy (needs real infra access, not done in this
+  session). P1+ (legacy import, signup webhooks, ZeroClaw, usage rollups)
+  haven't been started.
 - Kanban drag currently requires all 9 stage columns to fit in the viewport
   (or be scrolled into view) for a drop to register correctly — there's no
   auto-scroll-on-drag-near-edge yet. Fine on a wide desktop window; a real

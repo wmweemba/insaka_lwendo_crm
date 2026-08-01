@@ -1,6 +1,10 @@
 import { CalendarDays, KanbanSquare, Plus, Users } from "lucide-react";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { QuickAddShortcut } from "./QuickAddShortcut";
+import { SignOutButton } from "./SignOutButton";
 
 // Nav shell per ui_spec.md §3.2 (desktop sidebar) / §3.3 (mobile bottom tab bar).
 // Only This Week (a separate, later doc 03 screen) stays muted now.
@@ -11,11 +15,16 @@ const NAV_ITEMS = [
   { label: "Quick-add", href: "/leads/new", icon: Plus, live: true },
 ] as const;
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    redirect("/sign-in");
+  }
+
   return (
     <div className="flex min-h-full flex-1">
       <QuickAddShortcut />
@@ -31,6 +40,9 @@ export default function DashboardLayout({
             <SidebarLink key={item.href} {...item} />
           ))}
         </nav>
+        <div className="border-t border-border px-3 py-4">
+          <SignOutButton />
+        </div>
       </aside>
 
       <div className="flex flex-1 flex-col">

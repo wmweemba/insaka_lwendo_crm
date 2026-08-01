@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    // Next dev (Turbopack HMR, React Refresh) injects inline bootstrap scripts and
+    // uses eval — a strict `script-src 'self'` blocks the app from rendering at all
+    // in `next dev`. Relax script-src in development only; production keeps the
+    // locked-down policy.
+    const scriptSrc =
+      process.env.NODE_ENV === "development"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        : "script-src 'self'";
+
     return [
       {
         source: "/:path*",
@@ -26,7 +35,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self'",
+              scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "connect-src 'self'",

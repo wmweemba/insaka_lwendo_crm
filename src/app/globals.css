@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design tokens from ui_spec.md §1 (color), §2 (type scale), §4 (radius/shadow).
+ * Dark mode only for now — ui_spec §1.2's light-mode values and the cookie-persisted
+ * toggle (§10) are a follow-up; see CLAUDE.md for what's still pending. Underlying
+ * variables are named apart from the `--color-*` theme keys so a future `.light`
+ * selector can reassign them without touching @theme.
+ */
+.dark {
+  --bg: #161210;
+  --bg-raised: #1e1916;
+  --surface: #241e1a;
+  --surface-glass: rgba(232, 98, 44, 0.06);
+  --border: #332b25;
+  --border-glow: rgba(232, 98, 44, 0.35);
+  --text: #f5efe8;
+  --text-muted: #a89a8c;
+  --text-faint: #6e6259;
+  --accent: #e8622c;
+  --accent-hover: #ff7a3d;
+  --accent-soft: rgba(232, 98, 44, 0.14);
+  --gold: #c9a227;
+
+  --danger: #c84b3c;
+  --danger-soft: rgba(200, 75, 60, 0.14);
+  --success: #7a9b5e;
+  --warning: #d4a24c;
+  --info: #7c93a8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-surface: var(--surface);
+  --color-surface-glass: var(--surface-glass);
+  --color-border: var(--border);
+  --color-border-glow: var(--border-glow);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-montserrat);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --text-display-lg: 2.25rem;
+  --text-display-lg--line-height: 1.1;
+  --text-display-sm: 1.5rem;
+  --text-display-sm--line-height: 1.2;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1.4;
+  --text-mono: 0.8125rem;
+  --text-mono--line-height: 1.4;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px -8px var(--accent-soft);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
 }

@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   bigserial,
   boolean,
@@ -222,3 +223,52 @@ export const ingestLog = pgTable(
     ),
   ],
 );
+
+export const productsRelations = relations(products, ({ many }) => ({
+  engagements: many(engagements),
+}));
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  engagements: many(engagements),
+  referredByContact: one(contacts, {
+    fields: [contacts.referredBy],
+    references: [contacts.id],
+    relationName: "referrals",
+  }),
+  referrals: many(contacts, { relationName: "referrals" }),
+}));
+
+export const engagementsRelations = relations(engagements, ({ one, many }) => ({
+  contact: one(contacts, {
+    fields: [engagements.contactId],
+    references: [contacts.id],
+  }),
+  product: one(products, {
+    fields: [engagements.productId],
+    references: [products.id],
+  }),
+  interactions: many(interactions),
+  nextActions: many(nextActions),
+  usageRollups: many(usageRollups),
+}));
+
+export const interactionsRelations = relations(interactions, ({ one }) => ({
+  engagement: one(engagements, {
+    fields: [interactions.engagementId],
+    references: [engagements.id],
+  }),
+}));
+
+export const nextActionsRelations = relations(nextActions, ({ one }) => ({
+  engagement: one(engagements, {
+    fields: [nextActions.engagementId],
+    references: [engagements.id],
+  }),
+}));
+
+export const usageRollupsRelations = relations(usageRollups, ({ one }) => ({
+  product: one(products, {
+    fields: [usageRollups.productId],
+    references: [products.id],
+  }),
+}));

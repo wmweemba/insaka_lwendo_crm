@@ -54,6 +54,38 @@ until the app reaches its first production deploy with real client data.
 - `experimental.viewTransition` enabled in `next.config.ts` for route-level
   fade/rise transitions via the browser's native View Transitions API,
   rather than a client animation library — see `ui_spec.md` §5 for why.
+- `ui_spec.md` §1/§2/§4 design tokens (dark palette, type scale, radius/shadow)
+  wired into `globals.css`; Montserrat/Inter/JetBrains Mono loaded via
+  `next/font/google` in `layout.tsx`.
+- Dashboard shell (`(dashboard)/layout.tsx`) — sidebar (desktop) / bottom tab
+  bar (mobile) per `ui_spec.md` §3.2/§3.3, with This Week/Pipeline/Quick-add
+  rendered muted ("soon") until those screens are built; only Contacts is live.
+- Drizzle `relations()` for `contacts` ↔ `engagements` ↔ `products`, including
+  the self-referential `referredBy` chain, enabling the relational query API.
+- Contacts CRUD (P0-S2): list, create, edit, and detail pages
+  (`(dashboard)/contacts/**`) with react-hook-form + zod validation
+  (`@hookform/resolvers` added), server actions for all writes, and a
+  blocked-delete guard when a contact still has engagements.
+- Engagements CRUD, embedded in the contact detail page: add/edit/remove per
+  product, with the doc 01-mandated required-reason prompt when a stage moves
+  to `LOST` (writes a `system` `interactions` row and bumps `stage_changed_at`),
+  and duplicate-product / has-history delete guards.
+- Shared form primitives (`src/components/ui/{Input,Select,Textarea,Label,Button}.tsx`)
+  and a `cn()` helper (`src/lib/cn.ts`), flat-styled per `ui_spec.md` §7.3.
+- Local dev workflow: Postgres.app-backed `insaka_lwendo_crm_dev` database,
+  `.env.local` (gitignored), separate from the still-unconfirmed Coolify
+  tunnel — migrations applied here don't touch NS-007's open question.
+
+### Fixed
+
+- `next.config.ts` CSP `script-src 'self'` blocked Next dev's own inline
+  HMR/bootstrap scripts, breaking `next dev` entirely — relaxed to
+  `'unsafe-inline' 'unsafe-eval'` in development only; production stays locked
+  to `'self'`.
+- Unique/foreign-key violation detection in the contacts/engagements server
+  actions was checking `err.code` directly, but drizzle-orm wraps driver
+  errors in `DrizzleQueryError` with the real Postgres error on `.cause` —
+  fixed to check both levels.
 
 ### Notes
 
@@ -61,5 +93,9 @@ until the app reaches its first production deploy with real client data.
   working again and the Agent LLM Stack plan lands — see `CLAUDE.md`.
 - No deploy yet. First entry under a real version number lands at the
   P0-S1 Coolify smoke deploy.
+- Auth (Better Auth single-admin) is still not wired up — Contacts CRUD is
+  unauthenticated for now; tracked in `CLAUDE.md`'s "still to do" list.
+- Quick-add-with-dedup flow, the unified interaction timeline/composer, and
+  the next-action prompt are separate doc 04 P0-S2 items, not yet built.
 
 [Unreleased]: https://github.com/wmweemba/insaka_lwendo_crm/compare/main...HEAD

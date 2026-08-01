@@ -132,6 +132,65 @@ until the app reaches its first production deploy with real client data.
   per Better Auth's guidance for Proxy; the `(dashboard)` layout does the real
   `auth.api.getSession()` check server-side as the actual gate. Sign-out lives
   in the sidebar (`SignOutButton.tsx`).
+- `scripts/import-legacy.ts` (P1, doc 02 §2 / doc 04): one-time legacy import
+  from `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}` (read-only
+  source — never written to by this script). Two-stage per doc 02: a dry run
+  prints a summary and writes `scripts/legacy-import-review.md` (gitignored —
+  real contact PII, regenerated on each run); `--commit` writes everything in
+  one transaction. Refuses to `--commit` a second time once `contacts` is
+  non-empty, since the table has no unique constraint that would make a
+  re-run idempotent — this is meant to run once, at go-live.
+  - xlsx (`Prospects` sheet, all 3448 rows) → `contacts`, always — including
+    Tier-2 rows with no business signal, per doc 02 ("canonical contact
+    list"). Engagements are only created for the ~31 rows that actually have
+    a Product Fit set.
+  - Product Fit → product slug: `BazaBooks`/`Chama360` map 1:1; `Web
+    Design/Hosting` → `nexus-web`; `NdalamaHub` doesn't match any doc-01 seed
+    slug and isn't folded into "other" — added as a new `ndalamahub` product
+    row instead (products grows by insert per doc 01, and outreach-log.md
+    references it as its own live app, distinct from Nexus's web/hosting
+    client work). **Flagged for William to confirm** — a judgment call the
+    docs don't spell out.
+  - Outreach Status → stage via doc 02's literal inference rule ("responded/
+    in dialogue → IN_CONVERSATION... when ambiguous, choose the earlier
+    stage"), plus the two free-text variants actually used in the sheet
+    ("Signed Up", "Stalled / Went Quiet") that aren't in the xlsx's own
+    dropdown legend.
+  - Explicit hand-flagged duplicates (Internal Notes containing "DUPLICATE" —
+    the sheet already annotates these, e.g. Kanyika Kawandami's 3 phonebook
+    lines) are merged into the row they name as canonical, phones folded into
+    `phone_alt`. Rows that merely *share* a phone number but aren't flagged
+    are deliberately **not** auto-merged — the raw export turned out to have
+    real cases of two different people sharing a number (e.g. "Jason Mfula
+    II" / "Jay Mumba Photography"); silently merging on phone alone would
+    have overwritten Jay's SIGNED_UP fixture with an unrelated name. These
+    ~300 pairs (almost all genuine Tier-2 phonebook noise — reused/reassigned
+    numbers, not real duplicate signups) are listed in the review file for
+    manual merge via the app's own Merge-contacts tool instead, per doc 01's
+    "surface a warning, never hard-block" dedup rule.
+  - A small hardcoded fixture table covers the cases doc 04 calls out by name
+    where one xlsx row doesn't cleanly become one engagement: Annette Mazaba
+    /Tasty Food Boutique (BazaBooks CONTACTED + catering-scheduler
+    IN_CONVERSATION) and Grace Kalele MFIN (BazaBooks CONTACTED + Chama360
+    IN_CONVERSATION), plus two referral links that only exist as prose in the
+    source (Mulenga Bwalya → Mathan; Julie Mwamba → her village bank's
+    chairperson), setting `contacts.referred_by`.
+  - `outreach-log.md`'s `## Outreach` / `## Outreach Follow ups` (pipe-
+    delimited) and `## Feedback` (dated prose) sections parse into
+    `interactions`, matched to contacts by name (never auto-creating a
+    contact from the log, per doc 02) and to the product-specific engagement
+    named/implied in each entry; channel/direction are inferred (keyword
+    scan for "call"/"in person", default `whatsapp`) since the log itself
+    doesn't record them per line. Entries whose product can't be inferred, or
+    whose name doesn't match any imported contact (e.g. "Weekly batch",
+    "Grocery Champions" — not individuals), go to the review file instead of
+    being guessed at.
+  - Verified against local dev Postgres: Kanyika Kawandami consolidated
+    correctly (3 phone lines → one `phone_alt` array, SIGNED_UP), Jay Mumba
+    Photography SIGNED_UP, the Mulenga Bwalya → Mathan and Julie Mwamba →
+    chairperson referral links resolved, and Annette/Grace both landed with
+    their two respective engagements — all matching doc 04's named test
+    fixtures. Spot-checked in the actual UI (pipeline board, contacts table).
 
 ### Fixed
 

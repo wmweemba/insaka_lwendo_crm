@@ -60,6 +60,10 @@ Order of operations (P0):
 4. ✅ S2: full schema from `docs/planning/01-data-model.md`, seed products, contacts/engagements CRUD, quick-add lead flow with dedup warning, contact detail with timeline.
 5. ✅ S3: pipeline board (drag = stage change, LOST-reason prompt), "All" table view, merge-duplicates action.
 
+P0 is code-complete. P1 (`docs/planning/04-build-phases.md`) is next in sequence:
+1. ✅ `scripts/import-legacy.ts` written and run (dry-run + `--commit`) against local dev Postgres — see changelog for review-report findings. **Not yet run against production/Coolify Postgres — that's the actual go-live import, still pending the P0-S1 deploy.**
+2. ⬜ Go-live ritual: freeze `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}` with a header note once the real import runs — deliberately manual, deliberately not automated by this script or by Claude. William's call on timing.
+
 Do not invent features beyond docs `00`–`03` during implementation — if a want emerges mid-build (tags, search, email, charts), write it down as a v2 candidate in `docs/planning/04-build-phases.md`'s margin and keep moving.
 
 ---

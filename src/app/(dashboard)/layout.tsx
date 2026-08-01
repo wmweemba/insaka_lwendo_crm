@@ -1,14 +1,15 @@
 import { CalendarDays, KanbanSquare, Plus, Users } from "lucide-react";
 import Link from "next/link";
+import { QuickAddShortcut } from "./QuickAddShortcut";
 
 // Nav shell per ui_spec.md §3.2 (desktop sidebar) / §3.3 (mobile bottom tab bar).
-// Only Contacts is wired up this round — the other three destinations render
-// muted/non-interactive with a "soon" label until their screens are built.
+// Contacts and Quick-add are wired up — This Week/Pipeline stay muted until
+// those screens are built.
 const NAV_ITEMS = [
   { label: "This Week", href: "/", icon: CalendarDays, live: false },
   { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, live: false },
   { label: "Contacts", href: "/contacts", icon: Users, live: true },
-  { label: "Quick-add", href: "/leads/new", icon: Plus, live: false },
+  { label: "Quick-add", href: "/leads/new", icon: Plus, live: true },
 ] as const;
 
 export default function DashboardLayout({
@@ -18,6 +19,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-full flex-1">
+      <QuickAddShortcut />
       {/* Desktop sidebar — §3.2 */}
       <aside className="hidden lg:flex lg:w-60 lg:flex-col lg:border-r lg:border-border lg:bg-bg-raised">
         <div className="px-6 py-6">

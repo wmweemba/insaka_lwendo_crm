@@ -75,6 +75,23 @@ until the app reaches its first production deploy with real client data.
 - Local dev workflow: Postgres.app-backed `insaka_lwendo_crm_dev` database,
   `.env.local` (gitignored), separate from the still-unconfirmed Coolify
   tunnel — migrations applied here don't touch NS-007's open question.
+- Quick-add lead flow (`/leads/new`, doc 02 §1 / doc 03 screen 4): the four
+  quick fields (name, phone, product, source/referred-by/note), reachable
+  from the now-live "Quick-add" nav item and a global `⌘K`/`Ctrl+K` shortcut
+  (`(dashboard)/QuickAddShortcut.tsx`). Doc 01's dedup rule — a warning, never
+  a hard block — surfaces phone/name matches with a link to the existing
+  contact and a "this is someone new" override
+  (`src/db/queries/duplicates.ts`). Success state offers "Add next action
+  now" or "Done".
+- Contact detail: unified interaction timeline (`Timeline.tsx`) across all of
+  a contact's engagements, sorted by `happened_at`, with channel icons and
+  muted/dashed styling for `system`-channel entries. Inline log-interaction
+  composer (`LogInteractionForm.tsx`) that flows into doc 01's "what's the
+  next action?" prompt in the same component. Open next actions shown per
+  engagement panel (`NextActionsList.tsx`) with Done/Cancel actions.
+- `getContactById` (`src/db/queries/contacts.ts`) extended to load
+  `interactions` and open `nextActions` per engagement, feeding the timeline
+  and next-actions list without a new query file.
 
 ### Fixed
 
@@ -93,9 +110,11 @@ until the app reaches its first production deploy with real client data.
   working again and the Agent LLM Stack plan lands — see `CLAUDE.md`.
 - No deploy yet. First entry under a real version number lands at the
   P0-S1 Coolify smoke deploy.
-- Auth (Better Auth single-admin) is still not wired up — Contacts CRUD is
-  unauthenticated for now; tracked in `CLAUDE.md`'s "still to do" list.
-- Quick-add-with-dedup flow, the unified interaction timeline/composer, and
-  the next-action prompt are separate doc 04 P0-S2 items, not yet built.
+- Auth (Better Auth single-admin) is still not wired up — Contacts CRUD and
+  quick-add are unauthenticated for now; tracked in `CLAUDE.md`'s "still to
+  do" list.
+- P0-S2 (doc 04) is now complete: schema/seed, contacts/engagements CRUD,
+  quick-add with dedup, and the timeline/composer/next-action prompt are all
+  built. P0-S3 (pipeline board, "All" table view, merge-duplicates) is next.
 
 [Unreleased]: https://github.com/wmweemba/insaka_lwendo_crm/compare/main...HEAD

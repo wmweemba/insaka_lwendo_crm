@@ -13,6 +13,7 @@ import {
   updateEngagementSchema,
   type UpdateEngagementFormValues,
 } from "../validations";
+import { NextActionsList } from "./NextActionsList";
 
 export function EngagementPanel({
   contactId,
@@ -25,6 +26,7 @@ export function EngagementPanel({
     stage: (typeof STAGE_VALUES)[number];
     tier: number | null;
     interestNote: string | null;
+    nextActions: { id: string; description: string; dueDate: string | null }[];
   };
 }) {
   const [formError, setFormError] = useState<string | null>(null);
@@ -128,6 +130,13 @@ export function EngagementPanel({
           Save changes
         </Button>
       </div>
+
+      {engagement.nextActions.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label>Open next actions</Label>
+          <NextActionsList contactId={contactId} nextActions={engagement.nextActions} />
+        </div>
+      )}
     </form>
   );
 }

@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import { AddEngagementForm } from "./AddEngagementForm";
 import { DeleteContactButton } from "./DeleteContactButton";
 import { EngagementPanel } from "./EngagementPanel";
+import { LogInteractionForm } from "./LogInteractionForm";
+import { Timeline } from "./Timeline";
 
 export default async function ContactDetailPage({
   params,
@@ -110,10 +112,25 @@ export default async function ContactDetailPage({
               stage: engagement.stage,
               tier: engagement.tier,
               interestNote: engagement.interestNote,
+              nextActions: engagement.nextActions,
             }}
           />
         ))}
         <AddEngagementForm contactId={contact.id} availableProducts={availableProducts} />
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h2 className="font-display text-body-lg uppercase tracking-[0.04em] text-text-muted">
+          Timeline
+        </h2>
+        <LogInteractionForm
+          contactId={contact.id}
+          engagements={contact.engagements.map((e) => ({
+            id: e.id,
+            productName: e.product.name,
+          }))}
+        />
+        <Timeline engagements={contact.engagements} />
       </div>
     </div>
   );

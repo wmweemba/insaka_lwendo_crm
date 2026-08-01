@@ -20,7 +20,16 @@ export function getContactById(id: string) {
       referredByContact: true,
       referrals: true,
       engagements: {
-        with: { product: true },
+        with: {
+          product: true,
+          interactions: {
+            orderBy: (interactions, { desc }) => [desc(interactions.happenedAt)],
+          },
+          nextActions: {
+            where: (nextActions, { eq }) => eq(nextActions.status, "open"),
+            orderBy: (nextActions, { asc }) => [asc(nextActions.dueDate)],
+          },
+        },
         orderBy: (engagements, { asc }) => [asc(engagements.createdAt)],
       },
     },

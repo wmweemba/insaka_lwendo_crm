@@ -116,6 +116,7 @@ export default async function ContactDetailPage({
               stage: engagement.stage,
               tier: engagement.tier,
               interestNote: engagement.interestNote,
+              needsReview: engagement.needsReview,
               nextActions: engagement.nextActions,
             }}
           />

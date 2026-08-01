@@ -36,6 +36,11 @@ export function AllTable({ engagements }: { engagements: PipelineEngagement[] })
                     >
                       {e.contact.name}
                     </Link>
+                    {e.needsReview && (
+                      <span className="ml-2 rounded-full bg-warning/20 px-2 py-0.5 text-body-sm text-warning">
+                        Needs review
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-text-muted">{e.product.name}</td>
                   <td className="px-4 py-2 text-text-muted">{e.stage}</td>

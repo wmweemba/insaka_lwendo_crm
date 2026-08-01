@@ -71,11 +71,21 @@ export function PipelineCard({
             <p className="text-body-sm text-text-muted">{engagement.contact.company}</p>
           )}
         </div>
-        {engagement.tier && (
-          <span className="shrink-0 rounded-full bg-gold/20 px-2 py-0.5 text-body-sm text-gold">
-            T{engagement.tier}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          {engagement.needsReview && (
+            <span
+              className="rounded-full bg-warning/20 px-2 py-0.5 text-body-sm text-warning"
+              title="Signup couldn't be matched to an existing contact"
+            >
+              Review
+            </span>
+          )}
+          {engagement.tier && (
+            <span className="rounded-full bg-gold/20 px-2 py-0.5 text-body-sm text-gold">
+              T{engagement.tier}
+            </span>
+          )}
+        </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
         <span

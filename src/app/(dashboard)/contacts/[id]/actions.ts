@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { interactions, nextActions } from "@/db/schema";
+import { engagements, interactions, nextActions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "../actions";
@@ -88,5 +88,22 @@ export async function cancelNextAction(
     .where(eq(nextActions.id, nextActionId));
 
   revalidatePath(`/contacts/${contactId}`);
+  return { success: true };
+}
+
+// Doc 02 §3 — clears the flag a signup webhook sets when it couldn't match
+// an existing prospect, once a human has looked at it (confirmed it's a new
+// contact, or merged it into an existing one).
+export async function markEngagementReviewed(
+  engagementId: string,
+  contactId: string,
+): Promise<ActionResult> {
+  await db
+    .update(engagements)
+    .set({ needsReview: false })
+    .where(eq(engagements.id, engagementId));
+
+  revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
   return { success: true };
 }

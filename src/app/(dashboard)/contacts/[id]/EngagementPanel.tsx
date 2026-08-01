@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { deleteEngagement, updateEngagement } from "../actions";
+import { markEngagementReviewed } from "./actions";
 import {
   STAGE_VALUES,
   updateEngagementSchema,
@@ -26,6 +27,7 @@ export function EngagementPanel({
     stage: (typeof STAGE_VALUES)[number];
     tier: number | null;
     interestNote: string | null;
+    needsReview: boolean;
     nextActions: { id: string; description: string; dueDate: string | null }[];
   };
 }) {
@@ -70,16 +72,37 @@ export function EngagementPanel({
     }
   }
 
+  async function onMarkReviewed() {
+    const result = await markEngagementReviewed(engagement.id, contactId);
+    if (!result.success) {
+      setFormError(result.error);
+    }
+  }
+
   return (
     <form
       onSubmit={onSubmit}
       className="flex flex-col gap-3 rounded-md border border-border bg-surface p-4"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-body-lg font-semibold text-text">{engagement.productName}</h3>
-        <Button type="button" variant="ghost" onClick={onDelete}>
-          Remove
-        </Button>
+        <div className="flex items-center gap-2">
+          <h3 className="text-body-lg font-semibold text-text">{engagement.productName}</h3>
+          {engagement.needsReview && (
+            <span className="rounded-full bg-warning/20 px-2 py-0.5 text-body-sm text-warning">
+              Needs review
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {engagement.needsReview && (
+            <Button type="button" variant="secondary" onClick={onMarkReviewed}>
+              Mark reviewed
+            </Button>
+          )}
+          <Button type="button" variant="ghost" onClick={onDelete}>
+            Remove
+          </Button>
+        </div>
       </div>
 
       {formError && (

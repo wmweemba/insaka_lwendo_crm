@@ -224,6 +224,15 @@ until the app reaches its first production deploy with real client data.
   confirming the `ndalamahub` product call, reviewing the ~300
   possible-duplicate contacts, adding the missing "Astral Media" contact by
   hand, the Coolify deploy + real env secrets, and the go-live freeze ritual.
+- Surfaced `engagements.needs_review` in the UI — added when the signup
+  webhook was built, but nothing displayed it. A "Needs review" badge (warm
+  `--color-warning` pill, matching the existing tier-badge pattern) now
+  shows on the pipeline card, the "All" table row (next to the contact
+  name), and the contact-detail engagement panel, where a "Mark reviewed"
+  button (`markEngagementReviewed` server action) clears the flag once a
+  human has looked at it. Verified in the browser: a webhook-created
+  needs_review engagement showed the badge in all three places, and "Mark
+  reviewed" cleared it immediately.
 
 ### Fixed
 

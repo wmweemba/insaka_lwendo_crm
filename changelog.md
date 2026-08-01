@@ -192,6 +192,12 @@ until the app reaches its first production deploy with real client data.
     their two respective engagements — all matching doc 04's named test
     fixtures. Spot-checked in the actual UI (pipeline board, contacts table).
 
+- `docs/outstanding-tasks.md` — a running list of items from this session
+  that need a William decision or manual action rather than more build work:
+  confirming the `ndalamahub` product call, reviewing the ~300
+  possible-duplicate contacts, adding the missing "Astral Media" contact by
+  hand, the Coolify deploy + real env secrets, and the go-live freeze ritual.
+
 ### Fixed
 
 - `next.config.ts` CSP `script-src 'self'` blocked Next dev's own inline

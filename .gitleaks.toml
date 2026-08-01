@@ -10,9 +10,18 @@ useDefault = true
 # this, it recurses into node_modules — including pnpm's heavily-symlinked
 # .pnpm store — which can hang indefinitely. None of these paths are ever
 # committed, so excluding them from the scan is safe.
+#
+# .env* is excluded on the same basis: .gitignore already keeps every .env
+# variant out of the index, and the pre-push hook has its own separate check
+# (`git diff --cached --name-only` against `\.env`) that blocks a push if one
+# is ever staged despite that. So real local secrets (BETTER_AUTH_SECRET,
+# DATABASE_URL, etc.) can live in .env.local without the working-tree scan
+# flagging them on every push — the actual guard is "never staged," not
+# "never present on disk."
 paths = [
   '''node_modules''',
   '''\.next''',
   '''\.git''',
   '''pnpm-lock\.yaml''',
+  '''(^|/)\.env''',
 ]

@@ -109,6 +109,10 @@ export const engagements = pgTable(
     tier: smallint("tier"),
     appUserId: text("app_user_id"),
     interestNote: text("interest_note"),
+    // Doc 02 §3 — set on a signup webhook that couldn't match an existing
+    // prospect, so an unrecognized signup surfaces for a human to check
+    // (they may be an existing prospect under a different name/contact).
+    needsReview: boolean("needs_review").notNull().default(false),
     stageChangedAt: timestamp("stage_changed_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

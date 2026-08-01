@@ -35,6 +35,21 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       (the local dev run doesn't count — this needs a fresh empty
       `contacts` table, which the script itself enforces).
 
+## Signup webhook (P2)
+
+- [ ] Wire the BazaBooks-side emitter: `databaseHooks.user.create.after`
+      POSTs to `https://<hub>/api/ingest/signup`, HMAC-SHA256-signed with a
+      shared secret, as a third independent fire-and-forget call alongside
+      the existing admin-email/Telegram alerts (pattern P-001 — a failure
+      here must never block signup or the other two). Lives in the BazaBooks
+      repo, not this one.
+- [ ] Generate a real `INGEST_SECRET_BAZABOOKS` value and set it in both
+      apps' Coolify env once deployed (the value in this repo's `.env.local`
+      is dev-only, generated for local testing, never shared or reused).
+- [ ] Test a real BazaBooks signup end-to-end once both sides are live —
+      this session only verified the hub side with hand-crafted curl
+      requests against local dev Postgres.
+
 ## Minor / cosmetic
 
 - [ ] One imported contact ended up named `1997-04-01 00:00:00` — a genuine

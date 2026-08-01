@@ -192,6 +192,33 @@ until the app reaches its first production deploy with real client data.
     their two respective engagements — all matching doc 04's named test
     fixtures. Spot-checked in the actual UI (pipeline board, contacts table).
 
+- `POST /api/ingest/signup` (P2, doc 02 §3): HMAC-SHA256-verified webhook
+  (`X-Hub-Signature`, constant-time compare, per-app secret from
+  `INGEST_SECRET_<APP>` env vars — `src/lib/ingestAuth.ts`), idempotent on
+  `(app, event, user.id)` via `ingest_log`. Every request is logged before
+  processing regardless of outcome (invalid signature, bad payload, or
+  success), per the standing ingest rule in `CLAUDE.md`.
+  - Matching (`src/app/api/ingest/signup/process.ts`): existing engagement by
+    `app_user_id` first; else contact by email → phone → fuzzy name+business;
+    else a new contact (`source: inbound`). Stage only auto-advances to
+    `SIGNED_UP` from `LEAD`/`CONTACTED`/`IN_CONVERSATION`/`TRIALING` — doc
+    01's forward-only rule means an engagement already at `SIGNED_UP` or
+    beyond, `DORMANT`, or `LOST` is left alone (still logs the "Signed up in
+    {app}" system interaction and backfills `app_user_id` either way).
+  - New `engagements.needs_review` column (migration `0002`) — set `true`
+    only on the no-match/new-contact path, so an unrecognized signup surfaces
+    for review rather than silently assuming it's really a new person.
+  - Unrecognized `event` values 200/no-op rather than reject (doc 02: the
+    endpoint is schema-ready for `subscription.activated`/`payment.recorded`,
+    not yet built) — avoids BazaBooks retrying forever on something that
+    isn't actually an error.
+  - Verified against local dev Postgres with real HMAC-signed curl requests:
+    matched-by-phone (existing Jay Mumba Photography engagement, already
+    `SIGNED_UP`, correctly left in place), a brand-new contact + `needs_review`
+    flag, replay idempotency, bad-signature 401, and an unhandled future
+    event no-op — all five requests correctly logged in `ingest_log`.
+  - The BazaBooks-side emitter (`databaseHooks.user.create.after`, doc 02 §3)
+    lives in a different repo and isn't part of this change.
 - `docs/outstanding-tasks.md` — a running list of items from this session
   that need a William decision or manual action rather than more build work:
   confirming the `ndalamahub` product call, reviewing the ~300

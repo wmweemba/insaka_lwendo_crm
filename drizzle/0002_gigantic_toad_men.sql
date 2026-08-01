@@ -1,0 +1,1 @@
+ALTER TABLE "engagements" ADD COLUMN "needs_review" boolean DEFAULT false NOT NULL;

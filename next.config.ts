@@ -13,16 +13,10 @@ const nextConfig: NextConfig = {
     viewTransition: true,
   },
 
+  // Content-Security-Policy is set in src/proxy.ts instead of here: it needs a
+  // fresh nonce per request, and this headers() config only runs once at
+  // build/route-definition time — see the comment in proxy.ts for why.
   async headers() {
-    // Next dev (Turbopack HMR, React Refresh) injects inline bootstrap scripts and
-    // uses eval — a strict `script-src 'self'` blocks the app from rendering at all
-    // in `next dev`. Relax script-src in development only; production keeps the
-    // locked-down policy.
-    const scriptSrc =
-      process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-        : "script-src 'self'";
-
     return [
       {
         source: "/:path*",
@@ -31,17 +25,6 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              scriptSrc,
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              "connect-src 'self'",
-              "frame-ancestors 'none'",
-            ].join("; "),
-          },
         ],
       },
     ];

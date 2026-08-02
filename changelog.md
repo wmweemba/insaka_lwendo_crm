@@ -276,6 +276,26 @@ until the app reaches its first production deploy with real client data.
   the empty table was from a subsequent local DB reset (legacy-import
   requires an empty `contacts` table to run), not a broken webhook. Test rows
   cleaned up afterward.
+- Production deploy rendered a blank `/sign-in` page: `next.config.ts`'s
+  `Content-Security-Policy` locked `script-src` to `'self'` with no
+  `'unsafe-inline'`/nonce, and browsers block Next's own inline
+  hydration/RSC-payload scripts under that policy regardless of environment
+  (this had only ever been exercised in dev, where the policy was relaxed).
+  Fixed the framework-recommended way — a per-request nonce — rather than
+  loosening to `'unsafe-inline'`: `src/proxy.ts` (Next 16 renamed
+  `middleware.ts` to `proxy.ts`) now generates a nonce, sets it on both the
+  request (`x-nonce`) and response `Content-Security-Policy` headers, and
+  Next auto-stamps that nonce onto its own framework/page scripts during SSR.
+  Moved the CSP header out of `next.config.ts` (which only runs once at
+  build/route-definition time and can't carry a per-request value) down to
+  proxy.ts, alongside the existing session-cookie redirect; the other static
+  security headers (`X-Frame-Options`, etc.) stay in `next.config.ts`. Nonce
+  support requires dynamic rendering, which sign-in and the dashboard layout
+  already opt into (`headers()`) for the session check, so no page needed
+  extra changes. Verified locally: `pnpm build` (10 routes rendered/proxy
+  compiled) and `pnpm start` with a real `curl`, confirming both the CSP
+  response header and matching `nonce="..."` attributes on the rendered
+  inline scripts.
 - First Coolify smoke deploy failed the build with `ERROR packages field
   missing or empty` during `pnpm i --frozen-lockfile`. Root cause: Coolify's
   Nixpacks build resolved pnpm 9.15.9 (no `packageManager` field pins a

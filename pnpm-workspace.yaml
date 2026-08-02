@@ -1,6 +1,14 @@
 # Supply-chain hardening, adapted from wsm-second-brain/scaffold/security-baseline/pnpm-workspace.yaml
 # pnpm 10.x (<11) is in use here: onlyBuiltDependencies (list) is the correct key,
 # not allowBuilds (that's pnpm 11+ only). Re-check `pnpm --version` before upgrading pnpm.
+#
+# This is a single-package repo, not a real monorepo — `packages` is declared anyway
+# because pnpm <10 (e.g. 9.15.9, what Coolify's Nixpacks build resolved without a
+# pinned packageManager field) errors "packages field missing or empty" on install
+# if this file exists without it. pnpm 10+ doesn't require it, which is why local
+# installs worked but the Coolify build failed.
+packages:
+  - "."
 
 # Newly-published package versions won't resolve until they're at least this many
 # minutes old. Defends against supply-chain attacks where a compromised version is

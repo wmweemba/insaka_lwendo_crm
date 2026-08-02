@@ -276,6 +276,15 @@ until the app reaches its first production deploy with real client data.
   the empty table was from a subsequent local DB reset (legacy-import
   requires an empty `contacts` table to run), not a broken webhook. Test rows
   cleaned up afterward.
+- First Coolify smoke deploy failed the build with `ERROR packages field
+  missing or empty` during `pnpm i --frozen-lockfile`. Root cause: Coolify's
+  Nixpacks build resolved pnpm 9.15.9 (no `packageManager` field pins a
+  version), and pnpm <10 requires an explicit `packages` field in
+  `pnpm-workspace.yaml` even when the file exists only for its security
+  settings — pnpm 10.x (used locally) doesn't enforce this, so local installs
+  never surfaced it. Fixed by adding `packages: - "."` (this is a
+  single-package repo, not a real monorepo). Verified by running
+  `pnpm@9.15.9 i --frozen-lockfile` directly against the fixed file.
 
 ### Notes
 

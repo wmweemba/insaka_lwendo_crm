@@ -326,6 +326,13 @@ until the app reaches its first production deploy with real client data.
   correcting the database name in the Coolify env var and redeploying, then
   re-running the migration, which applied cleanly with all 10 expected
   tables present afterward.
+- The Quick-add lead form's Product dropdown was empty in production —
+  `drizzle-kit migrate` had been run there (creating the schema) but
+  `pnpm db:seed` (which inserts the 5 reference `products` rows) never had.
+  Fixed by running `pnpm db:seed` in the app container; dropdown now lists
+  all 5. (`ndalamahub` won't appear until the pending production
+  legacy-import run, which is what actually creates that product row — not
+  the seed script.)
 
 ### Notes
 

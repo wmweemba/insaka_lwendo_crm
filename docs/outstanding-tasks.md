@@ -36,9 +36,13 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       `pnpm import-legacy` — the file is gitignored, real contact PII) and
       merge real dupes via the app's own Merge-contacts tool. Mostly
       Tier-2 phonebook noise (reused/reassigned numbers), not urgent.
-- [ ] Add "Astral Media" as a contact by hand — it has no phonebook entry in
+- [x] Add "Astral Media" as a contact by hand — it has no phonebook entry in
       `prospects.xlsx` at all despite repeated `outreach-log.md` mentions, so
       the import couldn't create it.
+      Done 2026-08-03 via the Quick-add lead flow (BazaBooks). Along the
+      way found the `products` table was empty in production — `pnpm
+      db:seed` had never been run there (only migrations had) — fixed by
+      running it in the app container.
 - [ ] Go-live ritual (doc 04, manual, same day): once the Coolify deploy is
       up, freeze `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}`
       with a header note pointing at the hub, then re-run

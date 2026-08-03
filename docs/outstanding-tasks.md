@@ -52,18 +52,31 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
 
 ## Signup webhook (P2)
 
-- [ ] Wire the BazaBooks-side emitter: `databaseHooks.user.create.after`
+- [x] Wire the BazaBooks-side emitter: `databaseHooks.user.create.after`
       POSTs to `https://<hub>/api/ingest/signup`, HMAC-SHA256-signed with a
       shared secret, as a third independent fire-and-forget call alongside
       the existing admin-email/Telegram alerts (pattern P-001 — a failure
       here must never block signup or the other two). Lives in the BazaBooks
       repo, not this one.
-- [ ] Generate a real `INGEST_SECRET_BAZABOOKS` value and set it in both
-      apps' Coolify env once deployed (the value in this repo's `.env.local`
-      is dev-only, generated for local testing, never shared or reused).
-- [ ] Test a real BazaBooks signup end-to-end once both sides are live —
-      this session only verified the hub side with hand-crafted curl
-      requests against local dev Postgres.
+      Done 2026-08-03 in `payrush_saas_app` (`src/lib/integrations/clientHub.js`
+      + `src/lib/auth.js`, BazaBooks changelog `[3.43.6]`). Verified
+      end-to-end against a local hub instance: real signup → hub
+      creates/links the contact correctly; replay-as-no-op confirmed
+      hub-side; **and** signup still succeeds in ~3s with the hub killed
+      mid-request (both the abort-timeout and connection-refused paths
+      logged and swallowed, doc 02 §3's acceptance bar). Ships inert —
+      no-ops until the env vars below are set.
+- [ ] Generate a real `INGEST_SECRET_BAZABOOKS` value and set it, plus
+      `CLIENT_HUB_URL=https://insaka.nxhub.online`, in **both** apps'
+      Coolify env (this repo's `.env.local` value is dev-only, never
+      shared/reused — generate a fresh one for production). The BazaBooks
+      side documents both vars in its own `CLAUDE.md` now but they aren't
+      set anywhere yet, so the integration is currently live-but-inert in
+      code, off in practice.
+- [ ] Once both env vars are set: do one real BazaBooks signup in
+      production and confirm it shows up in the hub's Pipeline board
+      within a minute — this session only verified against local dev
+      Postgres on both sides, never the real production path end-to-end.
 
 ## Minor / cosmetic
 

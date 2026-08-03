@@ -343,6 +343,17 @@ until the app reaches its first production deploy with real client data.
   legacy-import run, which is what actually creates that product row — not
   the seed script.)
 
+- BazaBooks-side signup-webhook emitter (P2, doc 02 §3) — built and
+  committed in `payrush_saas_app` (`src/lib/integrations/clientHub.js` +
+  `src/lib/auth.js`, that repo's changelog `[3.43.6]`), not this repo.
+  Verified end-to-end against a local instance of this app: a real BazaBooks
+  signup correctly HMAC-signs and reaches `/api/ingest/signup`, creates a
+  `needs_review`-flagged contact/engagement, replays as a no-op, and — doc
+  02 §3's actual acceptance bar — signup still succeeds in ~3s with this
+  app's dev server killed mid-request. Not live in production yet: needs
+  `CLIENT_HUB_URL` + a real `INGEST_SECRET_BAZABOOKS` set in both apps'
+  Coolify env (tracked in `docs/outstanding-tasks.md`).
+
 ### Notes
 
 - P3 (ZeroClaw quick-capture) is deferred until both ZeroClaw instances are

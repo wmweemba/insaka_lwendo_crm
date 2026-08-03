@@ -43,7 +43,7 @@ If a session surfaces something that looks like it belongs in the second brain (
 
 ## Current Build Phase
 
-**Phase: P0-S1 — repo scaffold. Not yet deployed.**
+**Phase: P0 complete and deployed (`https://insaka.nxhub.online`). P1 legacy-import go-live ritual and P2 BazaBooks-side emitter still pending — see `docs/outstanding-tasks.md`.**
 
 Per `docs/planning/04-build-phases.md`, standing rules for every phase:
 - Apply the security baseline before any feature code (done at S1 — see below).
@@ -56,7 +56,7 @@ Per `docs/planning/04-build-phases.md`, standing rules for every phase:
 Order of operations (P0):
 1. ✅ S1: repo scaffold — Next.js App Router + Drizzle + Better Auth deps installed, security baseline applied, planning docs copied in.
 2. ✅ S1: Better Auth single-admin wired up (email/password, sign-ups closed after the first account, `/sign-in`, `src/proxy.ts` + dashboard-layout session gate). Verified in-browser.
-3. ⬜ S1 (remaining): Coolify deploy on subdomain with HTTPS, empty-schema smoke deploy. Needs real Coolify access — not doable from a coding session alone.
+3. ✅ S1 (remaining): Coolify deploy on subdomain with HTTPS — live at `https://insaka.nxhub.online`, schema migrated, real `BETTER_AUTH_SECRET` set, admin account created and verified.
 4. ✅ S2: full schema from `docs/planning/01-data-model.md`, seed products, contacts/engagements CRUD, quick-add lead flow with dedup warning, contact detail with timeline.
 5. ✅ S3: pipeline board (drag = stage change, LOST-reason prompt), "All" table view, merge-duplicates action.
 

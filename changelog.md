@@ -12,6 +12,16 @@ until the app reaches its first production deploy with real client data.
 
 ### Added
 
+- First production deploy: live on Coolify at `https://insaka.nxhub.online`
+  (Nixpacks build, shared Postgres instance with a dedicated
+  `insaka_lwendo_crm` database, HTTPS via Coolify/Let's Encrypt). Schema
+  migrated with `drizzle-kit migrate` run inside the app container
+  (`docker exec ... pnpm db:migrate` — devDependencies aren't pruned from
+  the Nixpacks image, so this works without a separate tunnel/build step),
+  real `BETTER_AUTH_SECRET` generated and set, admin account created and
+  login verified post-redeploy. Two real bugs surfaced and fixed along the
+  way — see below. `docs/outstanding-tasks.md` and `CLAUDE.md`'s phase
+  tracker updated to reflect P0 being deployed, not just code-complete.
 - Repo scaffold — Next.js 16 (App Router, TypeScript, `src/` layout), pnpm.
 - Core dependencies: `drizzle-orm` + `drizzle-kit` (Postgres), `better-auth`,
   `zod`, `react-hook-form`, Tailwind CSS v4.
@@ -305,13 +315,25 @@ until the app reaches its first production deploy with real client data.
   never surfaced it. Fixed by adding `packages: - "."` (this is a
   single-package repo, not a real monorepo). Verified by running
   `pnpm@9.15.9 i --frozen-lockfile` directly against the fixed file.
+- After the CSP fix, `/sign-in` 500'd with `relation "user" does not exist`
+  — expected, since no migration had ever been run against the Coolify
+  Postgres (deliberately deferred per `CLAUDE.md`'s S1 plan). Running
+  `pnpm db:migrate` inside the app container the first time no-opped with
+  "already exists, skipping" notices and created no tables — because the
+  app's `DATABASE_URL` env var in Coolify still pointed at the default
+  `postgres` database, not `insaka_lwendo_crm` (a leftover from before the
+  dedicated database existed on this shared Postgres instance). Fixed by
+  correcting the database name in the Coolify env var and redeploying, then
+  re-running the migration, which applied cleanly with all 10 expected
+  tables present afterward.
 
 ### Notes
 
 - P3 (ZeroClaw quick-capture) is deferred until both ZeroClaw instances are
   working again and the Agent LLM Stack plan lands — see `CLAUDE.md`.
-- No deploy yet. First entry under a real version number lands at the
-  P0-S1 Coolify smoke deploy.
+- Deployed 2026-08-03: `https://insaka.nxhub.online` — the P0-S1 Coolify
+  smoke deploy referenced below. First entry under a real version number
+  still lands once P1's go-live legacy import runs against this database.
 - Auth is now wired up (Better Auth single-admin, email/password, sign-ups
   closed after the first account) — verified end-to-end in a real browser:
   first-run sign-up creates the admin and lands on `/contacts`, sign-out

@@ -6,12 +6,21 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
 
 ## Deploy
 
-- [ ] Coolify smoke deploy (P0-S1's last remaining item): app on its own
+- [x] Coolify smoke deploy (P0-S1's last remaining item): app on its own
       subdomain with HTTPS, empty-schema smoke deploy, volume-backed Postgres
       confirmed to survive a container restart. Needs real Coolify access.
-- [ ] Once deployed: set real `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` in
+      Done 2026-08-03: live at https://insaka.nxhub.online, schema migrated,
+      admin account created. Along the way, fixed and pushed two real bugs
+      surfaced by the deploy (see changelog): `pnpm-workspace.yaml` missing a
+      `packages` field (broke the Nixpacks build under pnpm <10), and a
+      static `script-src 'self'` CSP blocking Next's own inline hydration
+      scripts in production (fixed via a per-request nonce in `src/proxy.ts`
+      instead of loosening the policy).
+- [x] Once deployed: set real `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` in
       Coolify's env (the `.env.local` values are dev-only, never shared).
       `BETTER_AUTH_URL` must be the real subdomain, not `localhost:3000`.
+      Done 2026-08-03: real secret generated and set, service redeployed,
+      confirmed login still works under the new secret.
 
 ## Legacy import (P1) — go-live
 

@@ -24,11 +24,13 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
 
 ## Legacy import (P1) — go-live
 
-- [ ] Confirm the `ndalamahub` product decision: it's not one of doc 01's 5
+- [x] Confirm the `ndalamahub` product decision: it's not one of doc 01's 5
       seed products, added because `outreach-log.md` references it directly
       (Clement Mweetwa / Manifi Investments) as its own live app. Reversible,
       but a judgment call the docs didn't spell out — say the word if you'd
       rather fold it into `nexus-web` or `other` instead.
+      Decided 2026-08-03: keep as its own product — no code change needed,
+      `scripts/import-legacy.ts` already does this.
 - [ ] Review the ~300 possible-duplicate contact pairs surfaced in
       `scripts/legacy-import-review.md` (regenerate by re-running
       `pnpm import-legacy` — the file is gitignored, real contact PII) and

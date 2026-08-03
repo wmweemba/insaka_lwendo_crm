@@ -67,6 +67,15 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
 
 ## Minor / cosmetic
 
-- [ ] One imported contact ended up named `1997-04-01 00:00:00` — a genuine
+- [x] One imported contact ended up named `1997-04-01 00:00:00` — a genuine
       glitch in the source Google Contacts export (not a parsing bug),
       harmless but odd if you spot it in the Contacts list.
+      Resolved 2026-08-03: William identified the real name as "April 97" —
+      likely got auto-converted to a date somewhere in the export/parsing
+      pipeline since it reads as a date-like string. Fixed in the local dev
+      DB (phone `976961863`, contact id `d0111aa7-7632-48e9-baa0-b8965db0d810`).
+      **Still needs fixing at the source**: `prospects.xlsx` row 2's "Full
+      Name" column still has the same glitched value — if left as-is, the
+      pending production legacy-import run will recreate this exact glitch.
+      William to fix directly in `wsm-second-brain/docs/prospects.xlsx`
+      (this repo treats that file as read-only, per `CLAUDE.md`).

@@ -246,6 +246,15 @@ until the app reaches its first production deploy with real client data.
 
 ### Fixed
 
+- One legacy-imported contact (local dev DB) had the name `1997-04-01
+  00:00:00` instead of "April 97" — the real name apparently got
+  auto-converted to a date somewhere in the Google Contacts export/parsing
+  pipeline since it reads as a date-like string. William identified the
+  real name from the phone number; corrected directly in the dev DB. The
+  same glitch still exists in `prospects.xlsx` row 2's source data and
+  needs fixing there before the pending production legacy-import run, or
+  it'll recreate the same bad name — flagged to William, not fixed here
+  since this repo treats that file as read-only.
 - `next.config.ts` CSP `script-src 'self'` blocked Next dev's own inline
   HMR/bootstrap scripts, breaking `next dev` entirely — relaxed to
   `'unsafe-inline' 'unsafe-eval'` in development only; production stays locked

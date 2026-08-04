@@ -17,9 +17,14 @@ import { products, contacts, engagements, interactions } from "@/db/schema";
 import type { engagementStageEnum, interactionChannelEnum } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
 
-const SECOND_BRAIN = "/Users/williammweemba/Dev_Projects/wsm-second-brain";
-const PROSPECTS_XLSX = `${SECOND_BRAIN}/docs/prospects.xlsx`;
-const OUTREACH_LOG = `${SECOND_BRAIN}/docs/outreach-log.md`;
+// Overridable via env var for environments where wsm-second-brain isn't a
+// sibling checkout (e.g. the Coolify container, which only ever has this
+// one repo) — never commit the actual xlsx/md files into this repo to make
+// that work instead; it's public and they contain real contact PII.
+const SECOND_BRAIN =
+  process.env.SECOND_BRAIN_PATH || "/Users/williammweemba/Dev_Projects/wsm-second-brain";
+const PROSPECTS_XLSX = process.env.PROSPECTS_XLSX_PATH || `${SECOND_BRAIN}/docs/prospects.xlsx`;
+const OUTREACH_LOG = process.env.OUTREACH_LOG_PATH || `${SECOND_BRAIN}/docs/outreach-log.md`;
 
 const COMMIT = process.argv.includes("--commit");
 

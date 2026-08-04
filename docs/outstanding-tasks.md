@@ -102,6 +102,20 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       appeared in the hub, correctly flagged `needs_review` (no matching
       prospect). **P2 is fully live end-to-end.**
 
+## Agent API
+
+- [ ] Deploy: generate a real `AGENT_API_KEY_CLAUDE` value
+      (`openssl rand -hex 32`) and set it in Coolify's env for this app,
+      runtime-only. Redeploy. Built and verified locally 2026-08-05 (see
+      changelog) but not yet usable in production without this — no key
+      configured means Claude can't authenticate against the live app at
+      all yet.
+- [ ] Whenever Hermes and/or a ZeroClaw instance are ready to use this:
+      generate `AGENT_API_KEY_HERMES` / `AGENT_API_KEY_ZEROCLAW` the same
+      way, one key per caller, set in this app's Coolify env only (nothing
+      needed on their side beyond having the key). No code change required
+      either way — see CLAUDE.md's "Agent API" section.
+
 ## Minor / cosmetic
 
 - [x] One imported contact ended up named `1997-04-01 00:00:00` — a genuine

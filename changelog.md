@@ -259,6 +259,39 @@ until the app reaches its first production deploy with real client data.
   separately, see below) and what's still open (re-adding Astral Media, the
   non-urgent duplicate review).
 
+- **Agent API (2026-08-05)** — generalized read/write access for William's
+  assistants (Claude, Hermes, each ZeroClaw instance), superseding doc 02
+  §4's original ZeroClaw-only `/api/ingest/lead`/`/api/ingest/interaction`
+  plan (those stub endpoints are gone; the hub-side API doesn't actually
+  need ZeroClaw to be up, only the ZeroClaw-specific Telegram skill does —
+  so it's built now rather than staying gated on ZeroClaw's own status).
+  - `src/lib/agentAuth.ts` — bearer-token auth, one key per caller,
+    `AGENT_API_KEY_<NAME>` env var (same "one var, no code change" pattern
+    as `INGEST_SECRET_<APP>`), constant-time compared.
+  - `src/lib/agentLog.ts` — every write logs to `ingest_log` with
+    `source: "agent:<name>"`; reads aren't logged (no side effect to audit).
+  - `GET /api/agent/contacts?q=` (search) and `GET /api/agent/contacts/:id`
+    (full detail) — new `src/db/queries/agentSearch.ts`, reuses the existing
+    `getContactById` query for detail.
+  - `POST /api/agent/leads` — reuses the `createLead` server action
+    (always creates rather than blocking on a possible duplicate like the
+    UI does — no UI to show a blocking prompt in — reports
+    `possibleDuplicates` in the response instead).
+  - `POST /api/agent/interactions` — reuses `logInteraction`.
+  - `PATCH /api/agent/engagements/:id` — reuses `updateEngagement`, so the
+    LOST-reason requirement behaves identically regardless of caller.
+  - Every write sets `engagements.needs_review = true`, uniformly across
+    all callers including Claude (2026-08-05 decision: simplest rule that's
+    still safe over a trust-tiered one).
+  - Verified locally end-to-end with a throwaway bearer key: unauthorized/
+    wrong-key requests correctly 401; search and detail reads work; a
+    created lead's initial note became its first interaction and the
+    engagement was flagged `needs_review`; logging a second interaction and
+    a stage update both worked; moving to `LOST` without a reason was
+    correctly blocked (same rule as the UI), with a reason it succeeded;
+    the full `ingest_log` audit trail (including the blocked attempt)
+    matched every call made. Test data cleaned up afterward.
+
 ### Fixed
 
 - `scripts/import-legacy.ts` hardcoded its source file paths to

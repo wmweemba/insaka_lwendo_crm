@@ -43,32 +43,47 @@ If a session surfaces something that looks like it belongs in the second brain (
 
 ## Current Build Phase
 
-**Phase: P0 complete and deployed (`https://insaka.nxhub.online`). P1 legacy-import go-live ritual and P2 BazaBooks-side emitter still pending — see `docs/outstanding-tasks.md`.**
+**Phase: P0, P1, and P2 are all done and live (`https://insaka.nxhub.online`). The hub is now the sole source of truth for leads/pipeline — `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}` are frozen.**
 
 Per `docs/planning/04-build-phases.md`, standing rules for every phase:
 - Apply the security baseline before any feature code (done at S1 — see below).
 - Respect NS-007 migration discipline: apply migrations via `drizzle-kit migrate` against Coolify Postgres through a tunnel confirmed working first, or update `_journal.json` in the same commit as any manually-applied SQL.
 - Automated stage transitions on `engagements.stage` are **forward-only**. Never auto-downgrade except the DORMANT/ACTIVE rollup pass described in doc `02`.
-- Every inbound endpoint (`/api/ingest/*`) logs to `ingest_log` **before** processing, so failures are always replayable.
+- Every inbound endpoint (`/api/ingest/*`, `/api/agent/*`) logs to `ingest_log` **before** processing (or, for `/api/agent/*` reads, doesn't log at all — see the Agent API section below), so write failures are always replayable.
 
-**P3 (ZeroClaw quick-capture) is deferred** until both ZeroClaw instances are working again and the Agent LLM Stack plan lands — do not build the ZeroClaw skill side or `/api/ingest/lead`/`/api/ingest/interaction` until that's confirmed with William. P0–P2 are unaffected by this and proceed in order.
+**P3's ZeroClaw-*skill* side is still deferred** until both ZeroClaw instances are working again and the Agent LLM Stack plan lands. Its hub-side API is **not** deferred — see Agent API below, which supersedes the originally-planned ZeroClaw-only `/api/ingest/lead`/`/api/ingest/interaction` endpoints with a generalized, multi-caller version. P4 (usage rollups) is unbuilt, still gated on BazaBooks shipping `scaffold/usage-tracking`.
 
-Order of operations (P0):
-1. ✅ S1: repo scaffold — Next.js App Router + Drizzle + Better Auth deps installed, security baseline applied, planning docs copied in.
-2. ✅ S1: Better Auth single-admin wired up (email/password, sign-ups closed after the first account, `/sign-in`, `src/proxy.ts` + dashboard-layout session gate). Verified in-browser.
-3. ✅ S1 (remaining): Coolify deploy on subdomain with HTTPS — live at `https://insaka.nxhub.online`, schema migrated, real `BETTER_AUTH_SECRET` set, admin account created and verified.
-4. ✅ S2: full schema from `docs/planning/01-data-model.md`, seed products, contacts/engagements CRUD, quick-add lead flow with dedup warning, contact detail with timeline.
-5. ✅ S3: pipeline board (drag = stage change, LOST-reason prompt), "All" table view, merge-duplicates action.
+P0: ✅ done (repo scaffold, Better Auth single-admin, Coolify deploy, full schema, contacts/engagements CRUD, quick-add lead flow, pipeline board, merge-duplicates).
 
-P0 is code-complete. P1 (`docs/planning/04-build-phases.md`):
-1. ✅ `scripts/import-legacy.ts` written and run (dry-run + `--commit`) against local dev Postgres — see changelog for review-report findings. **Not yet run against production/Coolify Postgres — that's the actual go-live import, still pending the P0-S1 deploy.**
-2. ⬜ Go-live ritual: freeze `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}` with a header note once the real import runs — deliberately manual, deliberately not automated by this script or by Claude. William's call on timing.
+P1: ✅ done 2026-08-05. `scripts/import-legacy.ts` ran for real against production (3407 contacts, 37 engagements, 41 interactions); go-live freeze applied to both source files. Two real bugs surfaced only by running against the actual target environment (hardcoded local-Mac paths; a mis-copied source file that silently produced 0 parsed entries) — fixed, and `scripts/backfill-outreach-log.ts` exists as a permanent, idempotent tool for this specific "matched against existing contacts, not a freshly-parsed xlsx" case, not a one-off patch. Full account in `changelog.md`.
 
-P2 — signup webhook (`docs/planning/02-capture-and-integrations.md` §3):
-1. ✅ Hub side: `POST /api/ingest/signup` — HMAC-verified, idempotent, forward-only stage advance, `needs_review` flag on unmatched signups. Verified against local dev Postgres with real signed requests.
-2. ⬜ BazaBooks side: emit from `databaseHooks.user.create.after` as a third independent fire-and-forget call (pattern P-001). Lives in the BazaBooks repo, not here — needs `INGEST_SECRET_BAZABOOKS` shared between both apps' Coolify env once deployed.
+P2: ✅ done. Hub side (`POST /api/ingest/signup`) and the BazaBooks-side emitter (`payrush_saas_app`'s `src/lib/integrations/clientHub.js`) are both live; a real production signup confirmed landing correctly `needs_review`-flagged.
 
 Do not invent features beyond docs `00`–`03` during implementation — if a want emerges mid-build (tags, search, email, charts), write it down as a v2 candidate in `docs/planning/04-build-phases.md`'s margin and keep moving.
+
+---
+
+## Agent API
+
+Built 2026-08-05, per a decision recorded in `wsm-second-brain/infrastructure/client-hub/00`: William's assistants (Claude, Hermes, each ZeroClaw instance) need read/write access to leads/contacts on his behalf — visibility into what he logs via the app, and the ability to create/update records when he discusses a prospect in chat. This generalizes doc `02` §4's original ZeroClaw-only plan (`/api/ingest/lead`, `/api/ingest/interaction`) into a caller-agnostic API; those two stub endpoints no longer exist, superseded by the routes below.
+
+**Auth:** bearer token, one key per caller, env var `AGENT_API_KEY_<NAME>` (e.g. `AGENT_API_KEY_CLAUDE`, `AGENT_API_KEY_HERMES`, `AGENT_API_KEY_ZEROCLAW`). `src/lib/agentAuth.ts` scans all configured `AGENT_API_KEY_*` vars and constant-time-compares each against the provided token — a match returns the caller's name (lowercased), used for `ingest_log`'s `source` field (`agent:claude`, etc.). Generate a new key with `openssl rand -hex 32`, same as `INGEST_SECRET_BAZABOOKS`. No key configured for a given name = that caller simply can't authenticate; nothing else to wire up.
+
+**Review policy:** every write through this API sets `engagements.needs_review = true`, regardless of caller — including Claude's. Deliberately uniform rather than trusting some callers more than others; simplest rule that's still safe, revisit only if it proves too noisy in practice. Clearing the flag is the existing "Mark reviewed" UI action, nothing new needed there.
+
+**Endpoints** (all under `/api/agent/`):
+
+| Method | Path | Does |
+|---|---|---|
+| GET | `/contacts?q=` | Search by name/company/email/phone (exact or `phone_alt`), capped at 20 results |
+| GET | `/contacts/:id` | Full detail — engagements, interaction timeline, open next actions (same query the contact-detail page uses) |
+| POST | `/leads` | Create a contact + engagement. `{name, phone?, productSlug, source?, referredBy?, note?}`. Unlike the UI's Quick-add, never blocks on a possible duplicate — always creates, reports `possibleDuplicates` in the response instead (there's no UI to show a blocking prompt in) |
+| POST | `/interactions` | Log an interaction on an existing engagement. `{engagementId, channel, direction, summary, happenedAt?}` |
+| PATCH | `/engagements/:id` | Update stage/tier/interestNote. `{stage?, tier?, interestNote?, lostReason?}` — reuses the exact `updateEngagement` action the UI calls, so the LOST-reason requirement and `stage_changed_at`/system-interaction bookkeeping behave identically |
+
+Reads aren't logged to `ingest_log` (no side effect to audit); every write is, `status: "processed"` or `"error"`, same shape the signup webhook uses.
+
+Not built: a way for an agent to create/complete next actions directly (use the interaction endpoint + ask William to handle it in-app for now), and no rate limiting beyond what Coolify/the OS provide — fine at this scale (single admin, a handful of trusted callers), revisit if it's ever not.
 
 ---
 
@@ -108,12 +123,20 @@ src/
     api/
       ingest/
         signup/          # POST /api/ingest/signup — doc 02 §3
-        lead/             # POST /api/ingest/lead — doc 02 §4 (ZeroClaw, deferred)
-        interaction/      # POST /api/ingest/interaction — doc 02 §4 (ZeroClaw, deferred)
-        usage/            # POST /api/ingest/usage — doc 02 §5
+        usage/            # POST /api/ingest/usage — doc 02 §5 (P4, not built)
+      agent/               # Generalized read/write API for William's assistants — see Agent API above
+        contacts/          # GET (search), GET /:id (detail)
+        leads/              # POST (create)
+        interactions/       # POST (log)
+        engagements/        # PATCH /:id (stage/tier/interestNote)
   db/
-    schema.ts             # Drizzle schema — empty at S1, populated in S2 per doc 01
+    schema.ts             # Drizzle schema, full doc 01 model
     index.ts               # DB client
+    queries/                # Read-side query functions, shared between UI and Agent API
+  lib/
+    agentAuth.ts           # AGENT_API_KEY_<NAME> bearer resolution
+    agentLog.ts             # ingest_log writer for Agent API calls
+    ingestAuth.ts            # INGEST_SECRET_<APP> HMAC verification (webhooks)
   components/
     ui/
 docs/

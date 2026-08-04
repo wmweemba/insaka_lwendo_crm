@@ -36,19 +36,42 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       `pnpm import-legacy` — the file is gitignored, real contact PII) and
       merge real dupes via the app's own Merge-contacts tool. Mostly
       Tier-2 phonebook noise (reused/reassigned numbers), not urgent.
-- [x] Add "Astral Media" as a contact by hand — it has no phonebook entry in
-      `prospects.xlsx` at all despite repeated `outreach-log.md` mentions, so
-      the import couldn't create it.
-      Done 2026-08-03 via the Quick-add lead flow (BazaBooks). Along the
-      way found the `products` table was empty in production — `pnpm
-      db:seed` had never been run there (only migrations had) — fixed by
-      running it in the app container.
-- [ ] Go-live ritual (doc 04, manual, same day): once the Coolify deploy is
-      up, freeze `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}`
-      with a header note pointing at the hub, then re-run
-      `pnpm import-legacy --commit` against the real production database
-      (the local dev run doesn't count — this needs a fresh empty
-      `contacts` table, which the script itself enforces).
+- [ ] Re-add "Astral Media" as a contact by hand (again) — it was added
+      2026-08-03 via Quick-add, but had to be deleted 2026-08-05 along with a
+      throwaway test signup so the go-live import's empty-`contacts`-table
+      check would pass. Not in `prospects.xlsx` at all, so the import can't
+      recreate it. Details: `Masuzyo`, `+260977284023`, BazaBooks.
+- [x] Go-live ritual (doc 04, manual, same day): freeze
+      `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}` with a header
+      note pointing at the hub, then re-run `pnpm import-legacy --commit`
+      against the real production database.
+      Done 2026-08-05. Hit two real problems along the way, both fixed:
+      (1) `scripts/import-legacy.ts` hardcoded the source file paths to
+      William's local Mac — worked in every local dry run but could never
+      have worked against the Coolify container, which only has this one
+      repo checked out. Made the paths env-var-overridable
+      (`SECOND_BRAIN_PATH`/`PROSPECTS_XLSX_PATH`/`OUTREACH_LOG_PATH`);
+      files copied into the container via `scp`+`docker cp` rather than
+      committed to this repo, which is **public** on GitHub and the source
+      files contain real contact PII.
+      (2) The `outreach-log.md` copy that reached the container the first
+      time parsed to 0 entries (turned out to be the wrong file entirely —
+      131 lines expected, 549 got copied by mistake) — caught via a
+      byte-for-byte `shasum`/`wc -l` check before trusting the next attempt,
+      not caught in time to avoid one bad `--commit` run first. Since
+      `import-legacy.ts` refuses to re-run against a non-empty `contacts`
+      table by design, wrote `scripts/backfill-outreach-log.ts` — matches
+      log entries against contacts that already exist rather than a
+      freshly-parsed xlsx, skips anything already present so it's safe to
+      re-run. Ran once the correct file was verified byte-identical
+      (checksum-matched): 41 interactions + 9 fallback engagements created.
+      **All doc 04 fixtures verified in production afterward**: Kanyika one
+      contact with 3 phone lines ✓, Mulenga→Mathan referral link ✓, Tasty
+      Food Boutique (stored as "Annette Mazaba") with two engagements —
+      BazaBooks `CONTACTED` + catering-scheduler `IN_CONVERSATION` ✓, Jay at
+      `SIGNED_UP` ✓, `ndalamahub` product row exists ✓. Totals: 3407
+      contacts, 37 engagements, 41 interactions. **P1 is done — the hub is
+      now the sole source of truth**, per doc 00's handover rule.
 
 ## Signup webhook (P2)
 
@@ -88,8 +111,6 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       likely got auto-converted to a date somewhere in the export/parsing
       pipeline since it reads as a date-like string. Fixed in the local dev
       DB (phone `976961863`, contact id `d0111aa7-7632-48e9-baa0-b8965db0d810`).
-      **Still needs fixing at the source**: `prospects.xlsx` row 2's "Full
-      Name" column still has the same glitched value — if left as-is, the
-      pending production legacy-import run will recreate this exact glitch.
-      William to fix directly in `wsm-second-brain/docs/prospects.xlsx`
-      (this repo treats that file as read-only, per `CLAUDE.md`).
+      Source fixed by William 2026-08-04 (`prospects.xlsx` row ~740 now reads
+      "April Zaloumis 97") before the 2026-08-05 production import ran, so
+      the glitch was not recreated there.

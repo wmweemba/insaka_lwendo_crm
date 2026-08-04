@@ -244,8 +244,49 @@ until the app reaches its first production deploy with real client data.
   needs_review engagement showed the badge in all three places, and "Mark
   reviewed" cleared it immediately.
 
+- **P1 legacy import go-live, complete (2026-08-05).** `wsm-second-brain/docs/{prospects.xlsx,outreach-log.md}`
+  frozen with pointer-note headers; `pnpm import-legacy --commit` run
+  against the real production database via `docker exec` on the Coolify
+  container (source files transferred with `scp`+`docker cp`, never
+  committed to this repo — it's public and they contain real contact PII).
+  Production now has 3407 contacts / 37 engagements / 41 interactions. All
+  doc 04 fixtures verified afterward: Kanyika one contact with 3 phone
+  lines, Mulenga→Mathan referral link, Tasty Food Boutique (contact stored
+  as "Annette Mazaba") with two engagements at the expected stages, Jay at
+  `SIGNED_UP`, `ndalamahub` product row present. **The hub is now the sole
+  source of truth for leads/pipeline** per doc 00's handover rule — see
+  `docs/outstanding-tasks.md` for the two real bugs hit along the way (fixed
+  separately, see below) and what's still open (re-adding Astral Media, the
+  non-urgent duplicate review).
+
 ### Fixed
 
+- `scripts/import-legacy.ts` hardcoded its source file paths to
+  `/Users/williammweemba/Dev_Projects/wsm-second-brain` — worked in every
+  local dry run (that path exists there) but could never have worked
+  against the Coolify container, which only ever has this one repo checked
+  out. First real go-live attempt failed with `ENOENT`. Made
+  `SECOND_BRAIN`/`PROSPECTS_XLSX`/`OUTREACH_LOG` overridable via
+  `SECOND_BRAIN_PATH`/`PROSPECTS_XLSX_PATH`/`OUTREACH_LOG_PATH` env vars,
+  defaults unchanged. Deliberately not fixed by committing the source
+  files into this repo — it's public on GitHub.
+- The `outreach-log.md` copy used in the actual `--commit` run turned out
+  to be the wrong file (549 lines copied instead of the real 131-line
+  file), so it parsed to 0 entries and production ended up with the 3407
+  contacts/28 xlsx-engagements but none of the ~41 outreach-log-derived
+  interactions. Caught after the fact by checking totals against the local
+  dry run; root-caused with a `shasum`/`wc -l` integrity check that should
+  have run *before* the first attempt, not after. Since
+  `import-legacy.ts` refuses to re-run against a non-empty `contacts`
+  table by design, added `scripts/backfill-outreach-log.ts` — matches log
+  entries against contacts that already exist instead of a freshly-parsed
+  xlsx, skips any interaction that already exists (same
+  engagement+summary+happenedAt) so it's safe to re-run. Verified locally
+  (identical parse/match counts to the original script, and running
+  `--commit` twice produced identical zero-duplicate results both times)
+  before running for real once the correct file was byte-for-byte
+  verified: 41 interactions + 9 fallback engagements created, closing the
+  gap.
 - One legacy-imported contact (local dev DB) had the name `1997-04-01
   00:00:00` instead of "April 97" — the real name apparently got
   auto-converted to a date somewhere in the Google Contacts export/parsing

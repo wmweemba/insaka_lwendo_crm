@@ -66,17 +66,18 @@ work, but shouldn't get lost. Check items off / delete them as they're done.
       mid-request (both the abort-timeout and connection-refused paths
       logged and swallowed, doc 02 §3's acceptance bar). Ships inert —
       no-ops until the env vars below are set.
-- [ ] Generate a real `INGEST_SECRET_BAZABOOKS` value and set it, plus
+- [x] Generate a real `INGEST_SECRET_BAZABOOKS` value and set it, plus
       `CLIENT_HUB_URL=https://insaka.nxhub.online`, in **both** apps'
-      Coolify env (this repo's `.env.local` value is dev-only, never
-      shared/reused — generate a fresh one for production). The BazaBooks
-      side documents both vars in its own `CLAUDE.md` now but they aren't
-      set anywhere yet, so the integration is currently live-but-inert in
-      code, off in practice.
-- [ ] Once both env vars are set: do one real BazaBooks signup in
+      Coolify env, runtime-only (neither var is build-time/`NEXT_PUBLIC_`
+      in either app).
+      Done 2026-08-04: fresh secret generated, set on both sides, both
+      apps redeployed.
+- [x] Once both env vars are set: do one real BazaBooks signup in
       production and confirm it shows up in the hub's Pipeline board
-      within a minute — this session only verified against local dev
-      Postgres on both sides, never the real production path end-to-end.
+      within a minute.
+      Done 2026-08-04: confirmed by William — real production signup
+      appeared in the hub, correctly flagged `needs_review` (no matching
+      prospect). **P2 is fully live end-to-end.**
 
 ## Minor / cosmetic
 

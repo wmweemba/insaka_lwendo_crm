@@ -353,6 +353,11 @@ until the app reaches its first production deploy with real client data.
   app's dev server killed mid-request. Not live in production yet: needs
   `CLIENT_HUB_URL` + a real `INGEST_SECRET_BAZABOOKS` set in both apps'
   Coolify env (tracked in `docs/outstanding-tasks.md`).
+- **P2 confirmed fully live in production (2026-08-04):** `CLIENT_HUB_URL`
+  and a real `INGEST_SECRET_BAZABOOKS` set runtime-only in both apps'
+  Coolify env, both redeployed. A real BazaBooks production signup showed
+  up in the hub's Pipeline board within a minute, correctly flagged
+  `needs_review`. Signup webhook (P2) is done end-to-end.
 
 ### Notes
 

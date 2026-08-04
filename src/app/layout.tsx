@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="en"
       className={`dark ${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-bg text-text">
+      <body className="min-h-full flex flex-col overflow-x-hidden font-sans bg-bg text-text">
         {children}
       </body>
     </html>

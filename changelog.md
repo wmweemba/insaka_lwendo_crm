@@ -292,8 +292,44 @@ until the app reaches its first production deploy with real client data.
     the full `ingest_log` audit trail (including the blocked attempt)
     matched every call made. Test data cleaned up afterward.
 
+- Mobile navigation/UX pass, prompted by William flagging misalignment on
+  the Contacts page and no way to sign out on mobile:
+  - `(dashboard)/MobileHeader.tsx` — slim `lg:hidden` top bar (wordmark +
+    sign-out icon button) above page content. Mobile had no equivalent of
+    the desktop sidebar's sign-out button; the bottom tab bar has no room
+    for a 5th slot (4 tabs, center one raised for Quick-add per
+    `ui_spec.md` §3.3), so account actions get their own bar instead.
+  - Contacts list (`(dashboard)/contacts/page.tsx`) now renders a stacked
+    card list below `sm` instead of the desktop `<table>` — a table can't
+    shrink to a phone width, and this repo has 3000+ contacts, so a
+    horizontally-scrollable table was a real usability problem, not just
+    the layout bug below.
+  - Pipeline board mobile redesign (`(dashboard)/pipeline/MobilePipelineBoard.tsx`,
+    `MoveStageSheet.tsx`): below `lg`, the 9-stage kanban is replaced with
+    a horizontally-scrollable stage-tab strip showing one stage's cards at
+    a time, and tapping a card opens a bottom sheet to pick the destination
+    stage — instead of `PipelineCard`'s drag-and-drop, which is unreliable
+    on touch once the target column is off-screen (no drag-to-edge
+    auto-scroll implemented, and 9 columns rarely all fit). Discussed
+    three options with William (scroll-snap only / tap-to-move / collapsed
+    swimlane groups) before building; he picked tap-to-move for mobile.
+    Desktop keeps the existing drag-and-drop board, with scroll-snap
+    columns and a stage-jump pill strip added on top so reaching a
+    far-right column doesn't require blind scrolling.
+
 ### Fixed
 
+- Contacts page (and, latently, any future page with a wide table) could
+  force the entire viewport to scroll horizontally on mobile, clipping the
+  "Add contact" button and dragging the fixed bottom tab bar sideways as
+  the page scrolled. Root cause: the table's `overflow-x-auto` wrapper
+  can only contain the table if its flex ancestors are allowed to shrink
+  below the table's intrinsic width, but `(dashboard)/layout.tsx`'s flex
+  chain around `<main>` had no `min-w-0` — flex items default to
+  `min-width: auto`, so the table's width bled through the whole chain up
+  to `<body>`. Fixed by adding `min-w-0` to the flex wrapper and `<main>`,
+  plus `overflow-x-hidden` on `<body>` as a backstop against the same
+  class of bug elsewhere.
 - `scripts/import-legacy.ts` hardcoded its source file paths to
   `/Users/williammweemba/Dev_Projects/wsm-second-brain` — worked in every
   local dry run (that path exists there) but could never have worked

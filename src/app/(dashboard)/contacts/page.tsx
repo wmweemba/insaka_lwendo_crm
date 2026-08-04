@@ -21,40 +21,72 @@ export default async function ContactsPage() {
           No one&apos;s at the fire yet — add your first lead.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-border">
-          <table className="w-full text-left text-body">
-            <thead className="sticky top-0 bg-bg-raised text-body-sm text-text-muted">
-              <tr>
-                <th className="px-4 py-2 font-medium">Name</th>
-                <th className="px-4 py-2 font-medium">Company</th>
-                <th className="px-4 py-2 font-medium">Phone</th>
-                <th className="px-4 py-2 font-medium">Engagements</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contacts.map((contact) => (
-                <tr key={contact.id} className="border-t border-border">
-                  <td className="px-4 py-2">
-                    <Link href={`/contacts/${contact.id}`} className="text-text hover:text-accent">
-                      {contact.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-text-muted">{contact.company ?? "—"}</td>
-                  <td className="px-4 py-2 font-mono text-mono text-text-muted">
-                    {contact.phone ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 text-text-muted">
-                    {contact.engagements.length === 0
-                      ? "—"
-                      : contact.engagements
-                          .map((e) => `${e.product.name}: ${e.stage}`)
-                          .join(", ")}
-                  </td>
+        <>
+          {/* Mobile: stacked cards, no horizontal scroll — a table can't shrink to fit a phone */}
+          <ul className="flex flex-col gap-2 sm:hidden">
+            {contacts.map((contact) => (
+              <li key={contact.id}>
+                <Link
+                  href={`/contacts/${contact.id}`}
+                  className="flex flex-col gap-1 rounded-sm border border-border px-4 py-3"
+                >
+                  <span className="text-body text-text">{contact.name}</span>
+                  {contact.company ? (
+                    <span className="text-body-sm text-text-muted">{contact.company}</span>
+                  ) : null}
+                  {contact.phone ? (
+                    <span className="font-mono text-mono text-body-sm text-text-muted">
+                      {contact.phone}
+                    </span>
+                  ) : null}
+                  {contact.engagements.length > 0 ? (
+                    <span className="text-body-sm text-text-muted">
+                      {contact.engagements
+                        .map((e) => `${e.product.name}: ${e.stage}`)
+                        .join(", ")}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop / tablet: table */}
+          <div className="hidden overflow-x-auto rounded-sm border border-border sm:block">
+            <table className="w-full text-left text-body">
+              <thead className="sticky top-0 bg-bg-raised text-body-sm text-text-muted">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Name</th>
+                  <th className="px-4 py-2 font-medium">Company</th>
+                  <th className="px-4 py-2 font-medium">Phone</th>
+                  <th className="px-4 py-2 font-medium">Engagements</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {contacts.map((contact) => (
+                  <tr key={contact.id} className="border-t border-border">
+                    <td className="px-4 py-2">
+                      <Link href={`/contacts/${contact.id}`} className="text-text hover:text-accent">
+                        {contact.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 text-text-muted">{contact.company ?? "—"}</td>
+                    <td className="px-4 py-2 font-mono text-mono text-text-muted">
+                      {contact.phone ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-text-muted">
+                      {contact.engagements.length === 0
+                        ? "—"
+                        : contact.engagements
+                            .map((e) => `${e.product.name}: ${e.stage}`)
+                            .join(", ")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

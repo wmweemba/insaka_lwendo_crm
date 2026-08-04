@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { MobileHeader } from "./MobileHeader";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
 import { QuickAddShortcut } from "./QuickAddShortcut";
 import { SignOutButton } from "./SignOutButton";
@@ -31,8 +32,9 @@ export default async function DashboardLayout({
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-8">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <MobileHeader />
+        <main className="mx-auto w-full min-w-0 max-w-[1280px] flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-8">
           {children}
         </main>
       </div>

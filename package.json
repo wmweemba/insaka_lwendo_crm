@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
-    "import-legacy": "tsx scripts/import-legacy.ts"
+    "import-legacy": "tsx scripts/import-legacy.ts",
+    "backfill-outreach-log": "tsx scripts/backfill-outreach-log.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

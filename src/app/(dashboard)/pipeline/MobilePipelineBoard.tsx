@@ -3,7 +3,6 @@
 import { STAGE_VALUES } from "@/app/(dashboard)/contacts/validations";
 import type { PipelineEngagement } from "@/db/queries/pipeline";
 import { useState } from "react";
-import { MoveStageSheet } from "./MoveStageSheet";
 import { STAGE_COLORS } from "./stageColors";
 
 type Stage = (typeof STAGE_VALUES)[number];
@@ -12,12 +11,12 @@ export function MobilePipelineBoard({
   engagements,
   now,
   pulsingId,
-  onDrop,
+  onOpen,
 }: {
   engagements: PipelineEngagement[];
   now: number;
   pulsingId: string | null;
-  onDrop: (engagementId: string, targetStage: Stage) => void;
+  onOpen: (engagementId: string) => void;
 }) {
   const counts = Object.fromEntries(
     STAGE_VALUES.map((stage) => [stage, engagements.filter((e) => e.stage === stage).length]),
@@ -26,10 +25,8 @@ export function MobilePipelineBoard({
   const [activeStage, setActiveStage] = useState<Stage>(
     () => STAGE_VALUES.find((stage) => counts[stage] > 0) ?? STAGE_VALUES[0],
   );
-  const [movingId, setMovingId] = useState<string | null>(null);
 
   const visible = engagements.filter((e) => e.stage === activeStage);
-  const movingEngagement = engagements.find((e) => e.id === movingId) ?? null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -72,7 +69,7 @@ export function MobilePipelineBoard({
               <button
                 key={e.id}
                 type="button"
-                onClick={() => setMovingId(e.id)}
+                onClick={() => onOpen(e.id)}
                 className={`card-glass flex flex-col gap-2 p-3 text-left ${
                   pulsingId === e.id ? "animate-pulse" : ""
                 }`}
@@ -99,7 +96,7 @@ export function MobilePipelineBoard({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-mono text-text-muted">{daysInStage}d</span>
-                  <span className="text-body-sm text-accent">Move ›</span>
+                  <span className="text-body-sm text-accent">Open ›</span>
                 </div>
                 {nextAction?.dueDate && (
                   <p className={`font-mono text-mono ${overdue ? "text-danger" : "text-text-muted"}`}>
@@ -111,18 +108,6 @@ export function MobilePipelineBoard({
           })
         )}
       </div>
-
-      {movingEngagement && (
-        <MoveStageSheet
-          contactName={movingEngagement.contact.name}
-          currentStage={movingEngagement.stage}
-          onClose={() => setMovingId(null)}
-          onSelect={(stage) => {
-            setMovingId(null);
-            onDrop(movingEngagement.id, stage);
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -232,6 +232,7 @@ export async function updateEngagement(
   }
 
   revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
   return { success: true };
 }
 

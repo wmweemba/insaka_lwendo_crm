@@ -4,6 +4,7 @@ import { STAGE_VALUES } from "@/app/(dashboard)/contacts/validations";
 import type { PipelineEngagement } from "@/db/queries/pipeline";
 import { useRef, useState } from "react";
 import { moveEngagementStage } from "./actions";
+import { EngagementQuickPanel } from "./EngagementQuickPanel";
 import { LostReasonModal } from "./LostReasonModal";
 import { MobilePipelineBoard } from "./MobilePipelineBoard";
 import { PipelineCard } from "./PipelineCard";
@@ -24,7 +25,14 @@ export function PipelineBoard({
   const [engagements, setEngagements] = useState(initial);
   const [pulsingId, setPulsingId] = useState<string | null>(null);
   const [pendingLost, setPendingLost] = useState<{ engagementId: string } | null>(null);
+  const [openEngagementId, setOpenEngagementId] = useState<string | null>(null);
   const columnRefs = useRef<Partial<Record<Stage, HTMLDivElement>>>({});
+
+  const openEngagement = engagements.find((e) => e.id === openEngagementId) ?? null;
+
+  function patchEngagement(engagementId: string, patch: Partial<PipelineEngagement>) {
+    setEngagements((prev) => prev.map((e) => (e.id === engagementId ? { ...e, ...patch } : e)));
+  }
 
   function scrollToStage(stage: Stage) {
     columnRefs.current[stage]?.scrollIntoView({
@@ -105,6 +113,7 @@ export function PipelineBoard({
                       pulse={pulsingId === e.id}
                       now={now}
                       onDrop={handleDrop}
+                      onOpen={setOpenEngagementId}
                     />
                   ))}
                 </div>
@@ -121,9 +130,18 @@ export function PipelineBoard({
           engagements={engagements}
           now={now}
           pulsingId={pulsingId}
-          onDrop={handleDrop}
+          onOpen={setOpenEngagementId}
         />
       </div>
+
+      {openEngagement && (
+        <EngagementQuickPanel
+          engagement={openEngagement}
+          onClose={() => setOpenEngagementId(null)}
+          onStageChange={(stage) => handleDrop(openEngagement.id, stage)}
+          onPatch={(patch) => patchEngagement(openEngagement.id, patch)}
+        />
+      )}
 
       {pendingLost && (
         <LostReasonModal

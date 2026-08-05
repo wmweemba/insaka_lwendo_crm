@@ -18,9 +18,8 @@ export function listEngagementsForBoard() {
       },
       nextActions: {
         where: (nextActions, { eq }) => eq(nextActions.status, "open"),
-        columns: { dueDate: true },
+        columns: { id: true, description: true, dueDate: true },
         orderBy: (nextActions, { asc }) => [asc(nextActions.dueDate)],
-        limit: 1,
       },
     },
   });

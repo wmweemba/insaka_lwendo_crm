@@ -12,6 +12,66 @@ until the app reaches its first production deploy with real client data.
 
 ### Added
 
+- **This Week screen (doc 03 Screen 1) built** — the last of the four
+  planned dashboard screens; `/` had been redirecting straight to `/contacts`
+  since P0 with the nav item muted "soon." Now shows: overdue next actions,
+  due-this-week next actions, fresh signups with no outbound follow-up yet,
+  a "gone quiet" list, and a 4-number metrics strip (new leads this month,
+  signups this month, active clients, open next actions). `db/queries/thisWeek.ts`
+  computes all of it in JS over a full engagement fetch rather than SQL
+  subqueries — the dataset is small enough (~40 live engagements) that this
+  stays fast and is far easier to read/adjust than nested EXISTS clauses.
+  Two honest simplifications, both commented in the query file: "gone quiet"
+  uses last-logged-interaction as the activity signal since
+  `usage_rollups.last_active_at` (the doc 03 spec's intended signal) doesn't
+  exist yet — P4/usage-tracking is still gated on BazaBooks shipping
+  `scaffold/usage-tracking`; and "signups this month" counts by current
+  `stage_changed_at`, which slightly over-counts engagements that advanced
+  further (e.g. ACTIVE → PAYING) within the month, since the schema has no
+  dedicated signed-up-at timestamp. `NavLinks.tsx`'s "This Week" item flipped
+  from `live: false` to `live: true`; `src/app/page.tsx` (the old
+  unconditional redirect-to-/contacts) deleted now that `(dashboard)/page.tsx`
+  owns `/` directly, behind the same auth-gated dashboard layout.
+- Contacts page search — instant client-side filter by name/company/phone as
+  you type (`ContactsList.tsx`), on both the mobile card list and the desktop
+  table. Doc 03's original "table filter suffices at this scale" call turned
+  out wrong in practice at 3000+ contacts (flagged directly by William after
+  using the app for real); all contacts were already being fetched
+  client-side with no pagination, so this is a pure client-side filter with
+  no new query.
+- Pipeline engagement quick panel (`pipeline/EngagementQuickPanel.tsx`) —
+  clicking/tapping a pipeline card now opens a panel to change stage/tier/
+  interest note, add/complete/reschedule/cancel next actions, and log an
+  interaction, without leaving the board. Previously a card only supported
+  moving between stages (desktop drag, or the old mobile-only "Move to…"
+  sheet, now retired in favor of this same panel on both surfaces — tap
+  opens it on mobile too). Desktop drag-and-drop is unchanged and still the
+  fastest way to move a card; the panel uses Motion's `onTap` gesture so it
+  doesn't fire mid-drag. Reuses the existing contact-detail-page server
+  actions (`updateEngagement`, `logInteraction`, `createNextAction`,
+  `completeNextAction`, `cancelNextAction`, `markEngagementReviewed`) rather
+  than duplicating logic, plus one new one, `rescheduleNextAction` — none of
+  the existing next-action actions supported changing a due date before.
+  Those actions' `revalidatePath` calls extended to cover `/pipeline` and
+  `/` too, since they're now reachable from there. Stage changes apply
+  optimistically to the board immediately (same mechanism the existing drag
+  flow already used), including the LOST-reason modal for that case; other
+  edits (tier/note/next actions) patch the open panel and the underlying
+  card locally without a full page reload.
+- Pipeline product tabs (`BazaBooks` / `Catering Scheduler` / …) now scroll
+  horizontally on mobile instead of forcing the whole page wide — same
+  `overflow-x-auto` treatment the kanban columns already had, just missing
+  from the tab strip.
+- Desktop pipeline board gets scroll-snap columns and a stage-jump pill
+  strip above the board (tap a pill to snap-scroll to that column) — doesn't
+  change the drag-and-drop UX, just makes the 9 stages easier to navigate to
+  without blind horizontal scrolling.
+- All four of the above verified live against local dev (real data copy,
+  throwaway local-only credential — see engineering notes, not committed
+  anywhere) via the Chrome extension: search narrowing 3448 contacts to 1,
+  a real stage move reflecting instantly on the board, a next action
+  added/cancelled, a test interaction logged, and This Week rendering real
+  fresh-signup/gone-quiet data before any of it shipped.
 - First production deploy: live on Coolify at `https://insaka.nxhub.online`
   (Nixpacks build, shared Postgres instance with a dedicated
   `insaka_lwendo_crm` database, HTTPS via Coolify/Let's Encrypt). Schema

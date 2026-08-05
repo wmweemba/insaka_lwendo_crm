@@ -13,11 +13,13 @@ export function PipelineCard({
   pulse,
   now,
   onDrop,
+  onOpen,
 }: {
   engagement: PipelineEngagement;
   pulse: boolean;
   now: number;
   onDrop: (engagementId: string, targetStage: Stage) => void;
+  onOpen: (engagementId: string) => void;
 }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-150, 150], [-2, 2]);
@@ -62,6 +64,7 @@ export function PipelineCard({
       animate={pulse ? { scale: [1, 1.05, 1] } : undefined}
       transition={{ duration: 0.4 }}
       onDragEnd={handleDragEnd}
+      onTap={() => onOpen(engagement.id)}
       className="card-glass cursor-grab p-3 active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-2">

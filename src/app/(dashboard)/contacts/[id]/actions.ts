@@ -34,9 +34,18 @@ export async function logInteraction(
     summary: data.summary,
   });
 
+  // Reachable from the pipeline board and This Week too now, not just the
+  // contact detail page — revalidate everywhere a logged interaction could
+  // change what's on screen (next-action date on a card, "gone quiet" list).
   revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/");
   return { success: true };
 }
+
+export type CreateNextActionResult =
+  | { success: true; nextAction: { id: string; description: string; dueDate: string | null } }
+  | { success: false; error: string; fieldErrors?: Record<string, string[]> };
 
 // Doc 01 rule of practice — closing an interaction should prompt "what's the
 // next action?"; every live engagement should have exactly one open
@@ -44,7 +53,7 @@ export async function logInteraction(
 export async function createNextAction(
   contactId: string,
   values: NextActionFormValues,
-): Promise<ActionResult> {
+): Promise<CreateNextActionResult> {
   const parsed = nextActionSchema.safeParse(values);
   if (!parsed.success) {
     return {
@@ -55,13 +64,34 @@ export async function createNextAction(
   }
   const data = parsed.data;
 
-  await db.insert(nextActions).values({
-    engagementId: data.engagementId,
-    description: data.description,
-    dueDate: data.dueDate === "" ? undefined : data.dueDate,
-  });
+  const [row] = await db
+    .insert(nextActions)
+    .values({
+      engagementId: data.engagementId,
+      description: data.description,
+      dueDate: data.dueDate === "" ? undefined : data.dueDate,
+    })
+    .returning({ id: nextActions.id, description: nextActions.description, dueDate: nextActions.dueDate });
 
   revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/");
+  return { success: true, nextAction: row };
+}
+
+export async function rescheduleNextAction(
+  nextActionId: string,
+  contactId: string,
+  dueDate: string,
+): Promise<ActionResult> {
+  await db
+    .update(nextActions)
+    .set({ dueDate: dueDate === "" ? null : dueDate })
+    .where(eq(nextActions.id, nextActionId));
+
+  revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/");
   return { success: true };
 }
 
@@ -75,6 +105,8 @@ export async function completeNextAction(
     .where(eq(nextActions.id, nextActionId));
 
   revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/");
   return { success: true };
 }
 
@@ -88,6 +120,8 @@ export async function cancelNextAction(
     .where(eq(nextActions.id, nextActionId));
 
   revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/");
   return { success: true };
 }
 

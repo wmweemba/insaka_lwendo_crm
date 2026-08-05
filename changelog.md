@@ -12,6 +12,19 @@ until the app reaches its first production deploy with real client data.
 
 ### Added
 
+- PWA installability (Tier 1 baseline): `src/app/manifest.ts` (native Next
+  `MetadataRoute.Manifest`), PNG icons at `public/icons/` (192, 512,
+  maskable — rasterized from the existing firelight-hut `icon.svg` mark,
+  20% safe-zone padding on the maskable variant), `src/app/apple-icon.png`
+  (180×180, opaque, via Next's `apple-icon` file convention), `viewport`
+  export with `viewport-fit=cover` and `themeColor`, and `appleWebApp`
+  metadata in `src/app/layout.tsx`. Safe-area inset padding added to
+  `body` in `globals.css`. Verified via production build + local serve:
+  `/manifest.webmanifest` and all icon routes return 200 with correct
+  MIME types, and `<link rel="manifest">`/Apple meta tags render on
+  `/sign-in`. Tier 2 (offline/service worker) deliberately deferred —
+  every route past `/sign-in` is authenticated, so caching would need to
+  be scoped to the app shell only, and that's a separate, riskier pass.
 - Custom favicon replacing the Next.js default — a thatched conical roof
   over an open-sided pole frame with a glowing hearth-fire dot underneath,
   built directly from `ui_spec.md` §0's design thesis ("no doors, no walls

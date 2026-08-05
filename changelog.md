@@ -379,6 +379,23 @@ until the app reaches its first production deploy with real client data.
 
 ### Fixed
 
+- This Week card text overflowed into single-word-per-line on mobile
+  (flagged by William with screenshots after the This Week screen shipped).
+  Root cause was the same "unshrinkable flex row" shape as the earlier
+  contacts-page overflow bug, just one level down: the Done/Reschedule/Log
+  interaction button group was `shrink-0` with no wrap, and the text column
+  next to it had no `min-w-0`, so on a narrow viewport the buttons held
+  their full width and the text column got squeezed to almost nothing
+  instead of either side giving way. Same shape existed in two more places
+  that hadn't been reported yet — the next-actions list inside
+  `EngagementQuickPanel.tsx` and the older `NextActionsList.tsx` on the
+  contact detail page — fixed all three: text column gets `min-w-0`, the
+  row stacks vertically (`flex-col` → `sm:flex-row`) and the button group
+  wraps (`flex-wrap`) below `sm`. Verified at an actual 390px viewport via
+  Playwright (window-resize through the Chrome extension doesn't reliably
+  shrink below its default size, per the earlier round's testing notes) —
+  reproduced the exact reported overflow first, then confirmed the fix
+  wraps buttons onto their own line instead of squeezing the text.
 - Contacts page (and, latently, any future page with a wide table) could
   force the entire viewport to scroll horizontally on mobile, clipping the
   "Add contact" button and dragging the fixed bottom tab bar sideways as

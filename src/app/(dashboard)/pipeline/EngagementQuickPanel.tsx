@@ -273,8 +273,8 @@ export function EngagementQuickPanel({
                     key={na.id}
                     className="flex flex-col gap-2 rounded-sm border border-border bg-bg px-3 py-2"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex flex-col">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 flex-col">
                         <span className="text-body-sm text-text">{na.description}</span>
                         {na.dueDate && (
                           <span
@@ -284,7 +284,7 @@ export function EngagementQuickPanel({
                           </span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 sm:shrink-0">
                         <Button
                           type="button"
                           variant="secondary"

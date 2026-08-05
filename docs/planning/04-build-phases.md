@@ -42,3 +42,17 @@ P0+P1 alone already replace the spreadsheet workflow and are worth shipping with
 ## Stop here
 
 No feature invention beyond docs 00–03 during implementation. If a want emerges mid-build (tags, search, email, charts), write it down in this file's margin as a candidate for v2 and keep moving — the shiny-object failure mode is known and named.
+
+### v2 candidates
+
+- **Pagination/virtualization for `AllTable` (pipeline) and `ContactsList`.**
+  Surfaced by the 2026-08-05 `/pa --full` performance audit: both screens
+  fetch and render the complete table client-side with no limit or
+  windowing — fine at the current few-thousand-contact / few-dozen-
+  engagement scale, but will visibly lag once either grows further.
+  Deliberately *not* treated as a performance "fix" — the underlying
+  queries (`listContacts`, `listEngagementsForBoard`) are relied on
+  elsewhere for full-dataset correctness (This Week's aggregate
+  computations, pipeline stage counts), so narrowing them requires real
+  pagination/infinite-scroll UX, not just a query tweak. Scope as its own
+  UI feature pass if/when contact or engagement volume makes it worth it.

@@ -2,7 +2,13 @@
 
 import type { STAGE_VALUES } from "@/app/(dashboard)/contacts/validations";
 import type { PipelineEngagement } from "@/db/queries/pipeline";
-import { motion, useMotionValue, useTransform, type PanInfo } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+  type PanInfo,
+} from "motion/react";
 import { memo, useRef } from "react";
 import { STAGE_COLORS } from "./stageColors";
 
@@ -22,7 +28,8 @@ export const PipelineCard = memo(function PipelineCard({
   onOpen: (engagementId: string) => void;
 }) {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-150, 150], [-2, 2]);
+  const prefersReducedMotion = useReducedMotion();
+  const rotate = useTransform(x, [-150, 150], prefersReducedMotion ? [0, 0] : [-2, 2]);
   const ref = useRef<HTMLDivElement>(null);
 
   // `now` is passed down from the server render rather than read here via
@@ -60,9 +67,9 @@ export const PipelineCard = memo(function PipelineCard({
       dragSnapToOrigin
       dragElastic={0.15}
       style={{ x, rotate }}
-      whileDrag={{ scale: 1.03 }}
-      animate={pulse ? { scale: [1, 1.05, 1] } : undefined}
-      transition={{ duration: 0.4 }}
+      whileDrag={{ scale: prefersReducedMotion ? 1 : 1.03 }}
+      animate={pulse && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : undefined}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
       onDragEnd={handleDragEnd}
       onTap={() => onOpen(engagement.id)}
       className="card-glass cursor-grab p-3 active:cursor-grabbing"

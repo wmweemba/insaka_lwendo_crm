@@ -37,6 +37,25 @@ until the app reaches its first production deploy with real client data.
     by construction — same partition logic, just computed once instead of
     once per stage; verified with `tsc --noEmit`, `eslint`, and a full
     `next build`.
+  - Contacts migration applied to production: `docker exec` into the app
+    container on the Coolify box and ran `pnpm db:migrate` directly (same
+    pattern as the original P0 deploy — Nixpacks doesn't prune
+    devDependencies, so `drizzle-kit` is available in the running
+    container). Reported `[✓] migrations applied successfully!`. Direct
+    `psql`/`EXPLAIN` verification wasn't possible from that container
+    (no `psql` binary in the Nixpacks image) — treated the clean exit as
+    sufficient given a failed `CREATE EXTENSION`/`CREATE INDEX` would have
+    aborted the migration run rather than reporting success.
+  - `src/proxy.ts` CSP header: the static part of the template (everything
+    but the per-request nonce) is now built once at module load and split
+    around a placeholder, so each request does a plain string concat
+    instead of re-running the template literal + whitespace-normalizing
+    regex on every request. No change to the CSP policy itself.
+  - `PipelineCard.tsx` respects `prefers-reduced-motion` (via `motion/react`'s
+    `useReducedMotion()`): drag-tilt rotation, the drag scale-bump, and the
+    stage-change pulse animation are all suppressed for users with reduced
+    motion set. Drag-and-drop itself stays fully functional — only the
+    decorative animation is gated.
 - PWA installability (Tier 1 baseline): `src/app/manifest.ts` (native Next
   `MetadataRoute.Manifest`), PNG icons at `public/icons/` (192, 512,
   maskable — rasterized from the existing firelight-hut `icon.svg` mark,

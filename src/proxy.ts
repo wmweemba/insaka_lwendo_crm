@@ -10,6 +10,29 @@ function isProtected(pathname: string) {
   );
 }
 
+// Only the nonce differs per request; the rest of the template is static, so
+// it's built + whitespace-normalized once at module load instead of on every
+// request, and split around a placeholder so a request only needs a cheap
+// string concat (no regex, no template re-parse) to insert its nonce.
+const CSP_NONCE_PLACEHOLDER = "__CSP_NONCE__";
+
+function buildCspTemplate(isDev: boolean) {
+  return `
+    default-src 'self';
+    script-src 'self' 'nonce-${CSP_NONCE_PLACEHOLDER}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    connect-src 'self';
+    frame-ancestors 'none';
+  `
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+const [CSP_BEFORE_NONCE, CSP_AFTER_NONCE] = buildCspTemplate(
+  process.env.NODE_ENV === "development",
+).split(CSP_NONCE_PLACEHOLDER);
+
 // CSP nonce must be generated per-request here (next.config.ts headers() runs
 // once at build/route-definition time, so it can't produce a fresh value per
 // request) — see node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md.
@@ -18,18 +41,7 @@ function isProtected(pathname: string) {
 // doesn't cost any static optimization we'd otherwise get.
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const isDev = process.env.NODE_ENV === "development";
-
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
-    connect-src 'self';
-    frame-ancestors 'none';
-  `
-    .replace(/\s{2,}/g, " ")
-    .trim();
+  const cspHeader = CSP_BEFORE_NONCE + nonce + CSP_AFTER_NONCE;
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

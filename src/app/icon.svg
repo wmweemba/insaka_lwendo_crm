@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD9A8" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#E8622C" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8622C" />
+      <stop offset="100%" stop-color="#C9A227" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="32" fill="#1E1916" />
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#332B25" stroke-width="1" />
+
+  <!-- fire glow, sits behind/under the roof gap -->
+  <circle cx="32" cy="44" r="11" fill="url(#glow)" />
+
+  <!-- support poles, open-sided (no walls) -->
+  <rect x="18" y="38" width="4" height="12" rx="2" fill="#A89A8C" />
+  <rect x="42" y="38" width="4" height="12" rx="2" fill="#A89A8C" />
+
+  <!-- thatched conical roof, flared eaves -->
+  <path d="M 32,10
+           Q 51,21 47,39
+           L 17,39
+           Q 13,21 32,10
+           Z"
+        fill="url(#roof)" stroke="#161210" stroke-width="1.5" stroke-linejoin="round" />
+
+  <!-- thatch courses -->
+  <path d="M 20,32 L 44,32" stroke="#161210" stroke-width="1.2" opacity="0.35" />
+  <path d="M 22,25 L 42,25" stroke="#161210" stroke-width="1.2" opacity="0.3" />
+
+  <!-- the hearth fire, glimpsed under the eaves -->
+  <circle cx="32" cy="46" r="5" fill="#FF7A3D" />
+  <circle cx="32" cy="46" r="2" fill="#FFD9A8" />
+</svg>

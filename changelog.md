@@ -12,6 +12,22 @@ until the app reaches its first production deploy with real client data.
 
 ### Added
 
+- Custom favicon replacing the Next.js default — a thatched conical roof
+  over an open-sided pole frame with a glowing hearth-fire dot underneath,
+  built directly from `ui_spec.md` §0's design thesis ("no doors, no walls
+  to hide behind — just a circle, a fire") and §6's guidance to use "a
+  minimal circular hut silhouette or radiating fire-glow mark" for
+  insaka-specific icon moments. Colors pulled from the existing dark-mode
+  token table (`--color-accent`, `--color-gold`, `--color-bg-raised`), no
+  new palette invented. First attempt (a pinwheel of thatch wedges viewed
+  from above) was rejected before shipping — at any size it read as a
+  radiation/hazard symbol, not a hut. `src/app/favicon.ico` (16/32/48px
+  multi-resolution), `src/app/icon.svg` (Next's modern SVG-favicon
+  convention), and `src/app/apple-icon.png` (180×180, iOS home screen) —
+  rendered via a real browser at each target size to confirm the shape
+  still reads at 16px, then verified all three routes serve with correct
+  content-types against a production build.
+
 - **This Week screen (doc 03 Screen 1) built** — the last of the four
   planned dashboard screens; `/` had been redirecting straight to `/contacts`
   since P0 with the nav item muted "soon." Now shows: overdue next actions,

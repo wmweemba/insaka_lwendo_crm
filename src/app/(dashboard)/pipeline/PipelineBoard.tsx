@@ -2,7 +2,7 @@
 
 import { STAGE_VALUES } from "@/app/(dashboard)/contacts/validations";
 import type { PipelineEngagement } from "@/db/queries/pipeline";
-import { useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { moveEngagementStage } from "./actions";
 import { EngagementQuickPanel } from "./EngagementQuickPanel";
 import { LostReasonModal } from "./LostReasonModal";
@@ -30,6 +30,15 @@ export function PipelineBoard({
 
   const openEngagement = engagements.find((e) => e.id === openEngagementId) ?? null;
 
+  // Grouped once per `engagements` change instead of re-filtering the full
+  // array once per stage (9x) on every render — same data, one pass.
+  const byStage = useMemo(() => {
+    const map = new Map<Stage, PipelineEngagement[]>();
+    for (const stage of STAGE_VALUES) map.set(stage, []);
+    for (const e of engagements) map.get(e.stage)?.push(e);
+    return map;
+  }, [engagements]);
+
   function patchEngagement(engagementId: string, patch: Partial<PipelineEngagement>) {
     setEngagements((prev) => prev.map((e) => (e.id === engagementId ? { ...e, ...patch } : e)));
   }
@@ -42,7 +51,9 @@ export function PipelineBoard({
     });
   }
 
-  function applyMove(engagementId: string, stage: Stage, lostReason?: string) {
+  // Stable references so React.memo on PipelineCard (which receives onDrop)
+  // actually prevents re-renders instead of comparing a new function every time.
+  const applyMove = useCallback((engagementId: string, stage: Stage, lostReason?: string) => {
     setEngagements((prev) =>
       prev.map((e) => (e.id === engagementId ? { ...e, stage, stageChangedAt: new Date() } : e)),
     );
@@ -53,15 +64,18 @@ export function PipelineBoard({
     moveEngagementStage(engagementId, stage, lostReason).catch((err) => {
       console.error("Failed to move engagement stage", err);
     });
-  }
+  }, []);
 
-  function handleDrop(engagementId: string, targetStage: Stage) {
-    if (targetStage === "LOST") {
-      setPendingLost({ engagementId });
-      return;
-    }
-    applyMove(engagementId, targetStage);
-  }
+  const handleDrop = useCallback(
+    (engagementId: string, targetStage: Stage) => {
+      if (targetStage === "LOST") {
+        setPendingLost({ engagementId });
+        return;
+      }
+      applyMove(engagementId, targetStage);
+    },
+    [applyMove],
+  );
 
   return (
     <>
@@ -82,15 +96,13 @@ export function PipelineBoard({
                 style={{ backgroundColor: STAGE_COLORS[stage] }}
               />
               {stage}
-              <span className="text-text-faint">
-                {engagements.filter((e) => e.stage === stage).length}
-              </span>
+              <span className="text-text-faint">{byStage.get(stage)?.length ?? 0}</span>
             </button>
           ))}
         </div>
         <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-4">
           {STAGE_VALUES.map((stage) => {
-            const columnEngagements = engagements.filter((e) => e.stage === stage);
+            const columnEngagements = byStage.get(stage) ?? [];
             return (
               <div
                 key={stage}

@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   bigserial,
   boolean,
@@ -77,23 +77,33 @@ export const products = pgTable("products", {
   active: boolean("active").notNull().default(true),
 });
 
-export const contacts = pgTable("contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  company: text("company"),
-  phone: text("phone"),
-  phoneAlt: text("phone_alt").array(),
-  email: text("email"),
-  source: contactSourceEnum("source"),
-  referredBy: uuid("referred_by"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    company: text("company"),
+    phone: text("phone"),
+    phoneAlt: text("phone_alt").array(),
+    email: text("email"),
+    source: contactSourceEnum("source"),
+    referredBy: uuid("referred_by"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    // gin_trgm_ops so ilike '%term%' (agentSearch.ts) and bare ilike exact
+    // match (duplicates.ts) can both use this index — a plain btree index
+    // isn't usable by the planner for either query shape.
+    index("contacts_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
+    index("contacts_phone_idx").on(table.phone),
+  ],
+);
 
 export const engagements = pgTable(
   "engagements",

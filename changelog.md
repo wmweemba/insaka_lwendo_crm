@@ -12,6 +12,31 @@ until the app reaches its first production deploy with real client data.
 
 ### Added
 
+- Performance audit (`/pa --full`) fixes, both scoped after a self-review
+  ruled out a broader "add pagination everywhere" pass as actively wrong —
+  `thisWeek.ts` and `listEngagementsForBoard` deliberately fetch full
+  datasets for correct in-JS aggregation (goneQuiet/freshSignups/stage
+  counts), so limiting those queries would have produced wrong numbers, not
+  just faster ones; left as-is.
+  - `contacts` table indexing: was fully unindexed. Added a GIN trigram
+    index on `contacts.name` (`pg_trgm` extension, migration
+    `drizzle/0003_numerous_mastermind.sql`) so `agentSearch.ts`'s
+    `ilike '%term%'` and `duplicates.ts`'s bare `ilike` dedup check can both
+    use an index — a plain btree index would not have been usable by the
+    planner for either query shape (confirmed via `EXPLAIN` against local
+    dev: Bitmap Index Scan instead of Seq Scan). Plus a plain btree index
+    on `contacts.phone` for the exact-match lookups. Purely additive
+    (`CREATE EXTENSION IF NOT EXISTS` + `CREATE INDEX`), no data touched.
+  - Pipeline board re-render fix (`PipelineBoard.tsx`, `PipelineCard.tsx`):
+    replaced 9x-per-render `.filter()` calls (once per stage column) with a
+    single `useMemo`'d grouping by stage; wrapped `applyMove`/`handleDrop`
+    in `useCallback` and `PipelineCard` in `React.memo` so a card drag no
+    longer re-renders every card in every column. No React Compiler is
+    configured in this project (a stale code comment implied otherwise),
+    so this manual memoization is real, not redundant. Behavior-preserving
+    by construction — same partition logic, just computed once instead of
+    once per stage; verified with `tsc --noEmit`, `eslint`, and a full
+    `next build`.
 - PWA installability (Tier 1 baseline): `src/app/manifest.ts` (native Next
   `MetadataRoute.Manifest`), PNG icons at `public/icons/` (192, 512,
   maskable — rasterized from the existing firelight-hut `icon.svg` mark,

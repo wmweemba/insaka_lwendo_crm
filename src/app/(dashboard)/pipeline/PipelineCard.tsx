@@ -3,12 +3,12 @@
 import type { STAGE_VALUES } from "@/app/(dashboard)/contacts/validations";
 import type { PipelineEngagement } from "@/db/queries/pipeline";
 import { motion, useMotionValue, useTransform, type PanInfo } from "motion/react";
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { STAGE_COLORS } from "./stageColors";
 
 type Stage = (typeof STAGE_VALUES)[number];
 
-export function PipelineCard({
+export const PipelineCard = memo(function PipelineCard({
   engagement,
   pulse,
   now,
@@ -110,4 +110,4 @@ export function PipelineCard({
       )}
     </motion.div>
   );
-}
+});
